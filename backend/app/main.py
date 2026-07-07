@@ -22,6 +22,6 @@ app.add_middleware(
 app.include_router(api_v1)
 
 
-@app.get("/health", tags=["infra"])
+@app.get("/healths", tags=["infra"])
 async def health_check() -> dict:
     return {"status": "ok"}
