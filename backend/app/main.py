@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.routers.v1 import router as api_v1
 
 app = FastAPI(
     title="Novillo — Sistema de Gestión Ganadera",
@@ -18,9 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Los routers de cada módulo se registran aquí a medida que se implementan:
-# from app.routers.v1 import animales, lotes, movimientos, ...
-# app.include_router(animales.router, prefix="/api/v1/animales", tags=["animales"])
+app.include_router(api_v1)
 
 
 @app.get("/health", tags=["infra"])

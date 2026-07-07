@@ -1,4 +1,4 @@
-# Novillo — Sistema de Gestión Ganadera
+# PMR — Sistema de Gestión Ganadera
 
 SaaS multi-tenant para gestión de estancias bovinas en Paraguay. Trazabilidad individual de animales, gestión de lotes y potreros, pesajes con GDP automático, control sanitario y reportes para SENACSA.
 
