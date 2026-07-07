@@ -41,6 +41,17 @@ jobs:
           docker push ${{ env.REGISTRY }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}:latest
 
+      - name: Permisos Secret Manager para Cloud Run
+        run: |
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format='value(projectNumber)')
+          COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+          for SECRET in pmr-database-url pmr-jwt-secret; do
+            gcloud secrets add-iam-policy-binding ${SECRET} \
+              --member="serviceAccount:${COMPUTE_SA}" \
+              --role="roles/secretmanager.secretAccessor" \
+              --project ${{ env.PROJECT_ID }} --quiet
+          done
+
       - name: Deploy a Cloud Run
         run: |
           cat > /tmp/env.yaml << 'EOF'
