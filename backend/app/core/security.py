@@ -19,8 +19,13 @@ def verify_supabase_token(token: str) -> dict:
         )
         return payload
     except JWTError as e:
-        logger.warning("JWT verification failed: %s — secret_len=%d token_len=%d",
-                       type(e).__name__, len(settings.SUPABASE_JWT_SECRET), len(token))
+        try:
+            header = jwt.get_unverified_header(token)
+            alg = header.get("alg", "unknown")
+        except Exception:
+            alg = "unreadable"
+        logger.warning("JWT verification failed: %s — alg=%s secret_len=%d token_len=%d",
+                       type(e).__name__, alg, len(settings.SUPABASE_JWT_SECRET), len(token))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o expirado",
