@@ -43,13 +43,18 @@ jobs:
 
       - name: Deploy a Cloud Run
         run: |
+          cat > /tmp/env.yaml << 'EOF'
+          ENVIRONMENT: "production"
+          CORS_ORIGINS: '["https://potrero-novillo.web.app","https://potrero-novillo.firebaseapp.com"]'
+          EOF
+
           gcloud run deploy ${{ env.SERVICE }} \
             --image ${{ env.REGISTRY }}:${{ github.sha }} \
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
             --set-secrets "DATABASE_URL=pmr-database-url:latest,SUPABASE_JWT_SECRET=pmr-jwt-secret:latest" \
-            --set-env-vars "ENVIRONMENT=production,CORS_ORIGINS=[\"https://potrero-novillo.web.app\",\"https://potrero-novillo.firebaseapp.com\"]" \
+            --env-vars-file /tmp/env.yaml \
             --min-instances 0 \
             --max-instances 3 \
             --memory 512Mi \
