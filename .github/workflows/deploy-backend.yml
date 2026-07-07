@@ -41,30 +41,28 @@ jobs:
           docker push ${{ env.REGISTRY }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}:latest
 
-      - name: Permisos Secret Manager para Cloud Run
-        run: |
-          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format='value(projectNumber)')
-          COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
-          for SECRET in pmr-database-url pmr-jwt-secret; do
-            gcloud secrets add-iam-policy-binding ${SECRET} \
-              --member="serviceAccount:${COMPUTE_SA}" \
-              --role="roles/secretmanager.secretAccessor" \
-              --project ${{ env.PROJECT_ID }} --quiet
-          done
-
       - name: Deploy a Cloud Run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
         run: |
-          cat > /tmp/env.yaml << 'EOF'
-          ENVIRONMENT: "production"
-          CORS_ORIGINS: '["https://potrero-novillo.web.app","https://potrero-novillo.firebaseapp.com"]'
-          EOF
+          python3 - << 'PYEOF'
+          import yaml, os
+          env = {
+            'ENVIRONMENT': 'production',
+            'CORS_ORIGINS': '["https://potrero-novillo.web.app","https://potrero-novillo.firebaseapp.com"]',
+            'DATABASE_URL': os.environ['DATABASE_URL'],
+            'SUPABASE_JWT_SECRET': os.environ['SUPABASE_JWT_SECRET'],
+          }
+          with open('/tmp/env.yaml', 'w') as f:
+              yaml.dump(env, f)
+          PYEOF
 
           gcloud run deploy ${{ env.SERVICE }} \
             --image ${{ env.REGISTRY }}:${{ github.sha }} \
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --set-secrets "DATABASE_URL=pmr-database-url:latest,SUPABASE_JWT_SECRET=pmr-jwt-secret:latest" \
             --env-vars-file /tmp/env.yaml \
             --min-instances 0 \
             --max-instances 3 \
