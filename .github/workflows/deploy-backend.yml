@@ -1,0 +1,59 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/deploy-backend.yml"
+
+env:
+  PROJECT_ID: potrero-novillo
+  REGION: southamerica-east1
+  SERVICE: pmr-backend
+  REGISTRY: southamerica-east1-docker.pkg.dev/potrero-novillo/pmr/backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Autenticar en Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configurar Docker para Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build y push imagen
+        working-directory: backend
+        run: |
+          docker build \
+            -t ${{ env.REGISTRY }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}:latest \
+            .
+          docker push ${{ env.REGISTRY }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}:latest
+
+      - name: Deploy a Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE }} \
+            --image ${{ env.REGISTRY }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-secrets "DATABASE_URL=pmr-database-url:latest,SUPABASE_JWT_SECRET=pmr-jwt-secret:latest" \
+            --set-env-vars "ENVIRONMENT=production,CORS_ORIGINS=[\"https://potrero-novillo.web.app\",\"https://potrero-novillo.firebaseapp.com\"]" \
+            --min-instances 0 \
+            --max-instances 3 \
+            --memory 512Mi \
+            --cpu 1 \
+            --concurrency 100 \
+            --timeout 30 \
+            --project ${{ env.PROJECT_ID }}
