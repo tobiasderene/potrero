@@ -10,8 +10,8 @@ on:
 env:
   PROJECT_ID: potrero-novillo
   REGION: southamerica-east1
-  SERVICE: pmr-backend
-  REGISTRY: southamerica-east1-docker.pkg.dev/potrero-novillo/pmr/backend
+  SERVICE: potrero-backend
+  REGISTRY: southamerica-east1-docker.pkg.dev/potrero-novillo/potrero/backend
 
 jobs:
   deploy:
@@ -27,6 +27,13 @@ jobs:
 
       - name: Configurar Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+
+      - name: Crear repositorio Artifact Registry si no existe
+        run: |
+          gcloud artifacts repositories create potrero \
+            --repository-format=docker \
+            --location=${{ env.REGION }} \
+            --project=${{ env.PROJECT_ID }} 2>/dev/null || true
 
       - name: Configurar Docker para Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
