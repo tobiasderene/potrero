@@ -41,6 +41,13 @@ jobs:
           docker push ${{ env.REGISTRY }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}:latest
 
+      - name: Limpiar secret refs de deploy anterior
+        run: |
+          gcloud run services update ${{ env.SERVICE }} \
+            --region ${{ env.REGION }} \
+            --remove-secrets "DATABASE_URL,SUPABASE_JWT_SECRET" \
+            --project ${{ env.PROJECT_ID }} 2>/dev/null || true
+
       - name: Deploy a Cloud Run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -63,7 +70,6 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --remove-secrets "DATABASE_URL,SUPABASE_JWT_SECRET" \
             --env-vars-file /tmp/env.yaml \
             --min-instances 0 \
             --max-instances 3 \
