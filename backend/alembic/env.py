@@ -5,12 +5,11 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 
-# Importar Base y todos los modelos para que Alembic los detecte
 from app.db.base import Base
 from app.core.config import settings
 
-# importar modelos aquí a medida que se crean, e.g.:
-# from app.models import animales, lotes  # noqa: F401
+# Importar todos los modelos para que Alembic los detecte en autogenerate
+import app.models  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
