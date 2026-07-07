@@ -25,7 +25,7 @@ const schema = z.object({
   fecha_inicio_sistema: z.string().min(1, "Requerido"),
   departamento: z.string().optional(),
   numero_senacsa: z.string().optional(),
-  ejercicio_inicio_mes: z.coerce.number().int().min(1).max(12),
+  ejercicio_inicio_mes: z.number().int().min(1).max(12),
 })
 
 type FormData = z.infer<typeof schema>
@@ -103,7 +103,7 @@ export function StepEstablecimiento({ onNext }: Props) {
           <select
             id="ejercicio_mes"
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            {...register("ejercicio_inicio_mes")}
+            {...register("ejercicio_inicio_mes", { valueAsNumber: true })}
           >
             {MESES.map((m) => (
               <option key={m.value} value={m.value}>{m.label}</option>
