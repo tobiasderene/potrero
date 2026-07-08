@@ -38,7 +38,6 @@ async def crear_potrero(
 ) -> PotreroRead:
     potrero = await crud.create(db, establecimiento_id, data)
     await db.commit()
-    await db.refresh(potrero)
     return PotreroRead.model_validate(potrero)
 
 
@@ -66,5 +65,4 @@ async def actualizar_potrero(
         raise HTTPException(status_code=404, detail="Potrero no encontrado")
     potrero = await crud.update(db, potrero, data)
     await db.commit()
-    await db.refresh(potrero)
     return PotreroRead.model_validate(potrero)
