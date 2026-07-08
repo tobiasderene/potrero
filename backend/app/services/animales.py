@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import animales as crud
+from app.models.animales import Animal
 from app.schemas.animales import AnimalCreate, AnimalUpdate, CambioCategoria
 
 
