@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 
 from fastapi import Depends, HTTPException, status
@@ -8,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_supabase_token
 from app.db.session import get_db as _get_raw_db
+
+logger = logging.getLogger(__name__)
 
 bearer_scheme = HTTPBearer()
 
@@ -55,6 +58,21 @@ async def get_db(
         ),
         {"claims": claims, "sub": str(user_id)},
     )
+
+    # DEBUG temporal — solo lee current_setting, no toca auth.uid() para
+    # no repetir el permission-denied. Sacar una vez resuelto el 500.
+    diag = await db.execute(
+        text(
+            "SELECT current_setting('request.jwt.claim.sub', true), "
+            "current_setting('request.jwt.claims', true), current_user"
+        )
+    )
+    row = diag.first()
+    logger.info(
+        "RLS debug: claim.sub=%r claims=%r current_user=%r expected=%s",
+        row[0], row[1], row[2], user_id,
+    )
+
     return db
 
 
