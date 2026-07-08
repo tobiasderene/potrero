@@ -12,7 +12,13 @@ async def create(
     db: AsyncSession,
     data: EstablecimientoCreate,
 ) -> Establecimiento:
-    est = Establecimiento(**data.model_dump())
+    # created_at/updated_at se setean acá (no server_default vía RETURNING):
+    # un INSERT con RETURNING evalúa también la policy de SELECT sobre la fila
+    # nueva, y "ver mi establecimiento" exige que exista el vínculo en
+    # usuarios_establecimientos — que en este punto todavía no existe (se crea
+    # justo después). Evitar el RETURNING evita ese chequeo imposible.
+    now = datetime.now(timezone.utc)
+    est = Establecimiento(**data.model_dump(), created_at=now, updated_at=now)
     db.add(est)
     await db.flush()
     return est
