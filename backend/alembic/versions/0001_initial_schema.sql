@@ -1,30 +1,17 @@
-"""Esquema completo inicial — todas las tablas, RLS, triggers y funciones.
+-- ═══════════════════════════════════════════════════════════════
+-- Esquema completo inicial — tablas, RLS, triggers y funciones.
+-- Generado a partir de alembic/versions/0001_initial_schema.py
+-- Pegar y correr entero en Supabase → SQL Editor.
+-- ═══════════════════════════════════════════════════════════════
 
-Revision ID: 0001
-Revises:
-Create Date: 2024-07-01
-"""
-
-from alembic import op
-
-revision = "0001"
-down_revision = None
-branch_labels = None
-depends_on = None
-
-
-def upgrade() -> None:
-    op.execute("""
 -- ─────────────────────────────────────────────
 -- EXTENSIONES
 -- ─────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "btree_gist";
-""")
 
-    # ── Bloque 1: Fundación multi-tenant ──────────────────────────────────────
-    op.execute("""
+-- ── Bloque 1: Fundación multi-tenant ──────────────────────────────────────
 CREATE TABLE IF NOT EXISTS establecimientos (
     id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nombre               TEXT NOT NULL,
@@ -40,9 +27,7 @@ CREATE TABLE IF NOT EXISTS establecimientos (
     created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS usuarios_establecimientos (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id             UUID NOT NULL,
@@ -58,9 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_ue_user_id
     ON usuarios_establecimientos(user_id);
 CREATE INDEX IF NOT EXISTS idx_ue_establecimiento_id
     ON usuarios_establecimientos(establecimiento_id);
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS tipos_de_cambio (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -70,10 +53,8 @@ CREATE TABLE IF NOT EXISTS tipos_de_cambio (
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (establecimiento_id, fecha_vigencia)
 );
-""")
 
-    # ── Bloque 2: Configuración del establecimiento ───────────────────────────
-    op.execute("""
+-- ── Bloque 2: Configuración del establecimiento ───────────────────────────
 CREATE TABLE IF NOT EXISTS categorias (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -91,9 +72,7 @@ CREATE TABLE IF NOT EXISTS categorias (
 
 CREATE INDEX IF NOT EXISTS idx_categorias_establecimiento
     ON categorias(establecimiento_id);
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS potreros (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -112,9 +91,7 @@ CREATE INDEX IF NOT EXISTS idx_potreros_establecimiento
     ON potreros(establecimiento_id);
 CREATE INDEX IF NOT EXISTS idx_potreros_estado
     ON potreros(establecimiento_id, estado);
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS lotes (
     id                      UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id      UUID NOT NULL REFERENCES establecimientos(id),
@@ -137,10 +114,8 @@ CREATE INDEX IF NOT EXISTS idx_lotes_establecimiento
     ON lotes(establecimiento_id);
 CREATE INDEX IF NOT EXISTS idx_lotes_estado
     ON lotes(establecimiento_id, estado);
-""")
 
-    # ── Bloque 3: Animales e identidad ───────────────────────────────────────
-    op.execute("""
+-- ── Bloque 3: Animales e identidad ───────────────────────────────────────
 CREATE TABLE IF NOT EXISTS animales (
     id                          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id          UUID NOT NULL REFERENCES establecimientos(id),
@@ -185,9 +160,7 @@ CREATE INDEX IF NOT EXISTS idx_animales_caravana
 CREATE INDEX IF NOT EXISTS idx_animales_madre
     ON animales(madre_id)
     WHERE madre_id IS NOT NULL;
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS animal_categorias (
     id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     animal_id   UUID NOT NULL REFERENCES animales(id),
@@ -211,10 +184,8 @@ CREATE INDEX IF NOT EXISTS idx_categorias_animal
 CREATE INDEX IF NOT EXISTS idx_categorias_activa
     ON animal_categorias(animal_id)
     WHERE fecha_fin IS NULL;
-""")
 
-    # ── Bloque 4: Eventos ────────────────────────────────────────────────────
-    op.execute("""
+-- ── Bloque 4: Eventos ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS eventos (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -246,9 +217,7 @@ CREATE INDEX IF NOT EXISTS idx_eventos_tipo
     ON eventos(establecimiento_id, tipo);
 CREATE INDEX IF NOT EXISTS idx_eventos_fecha
     ON eventos(establecimiento_id, fecha_evento DESC);
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS eventos_animales (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evento_id       UUID NOT NULL REFERENCES eventos(id),
@@ -263,10 +232,8 @@ CREATE INDEX IF NOT EXISTS idx_ea_animal ON eventos_animales(animal_id);
 CREATE INDEX IF NOT EXISTS idx_ea_animal_tipo
     ON eventos_animales(animal_id)
     INCLUDE (evento_id);
-""")
 
-    # ── Bloque 5: Especializaciones de eventos ───────────────────────────────
-    op.execute("""
+-- ── Bloque 5: Especializaciones de eventos ───────────────────────────────
 CREATE TABLE IF NOT EXISTS evento_pesajes (
     evento_id        UUID PRIMARY KEY REFERENCES eventos(id),
     animal_id        UUID REFERENCES animales(id),
@@ -282,9 +249,7 @@ CREATE INDEX IF NOT EXISTS idx_pesajes_animal
     ON evento_pesajes(animal_id) WHERE animal_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_pesajes_lote
     ON evento_pesajes(lote_id) WHERE lote_id IS NOT NULL;
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_movimientos (
     evento_id               UUID PRIMARY KEY REFERENCES eventos(id),
     tipo_movimiento         TEXT NOT NULL
@@ -315,9 +280,7 @@ CREATE INDEX IF NOT EXISTS idx_movimientos_tipo
 CREATE INDEX IF NOT EXISTS idx_movimientos_guia
     ON evento_movimientos(numero_guia_senacsa)
     WHERE numero_guia_senacsa IS NOT NULL;
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_vacunaciones (
     evento_id               UUID PRIMARY KEY REFERENCES eventos(id),
     biologico               TEXT NOT NULL,
@@ -332,9 +295,7 @@ CREATE TABLE IF NOT EXISTS evento_vacunaciones (
     es_antiaftosa           BOOLEAN NOT NULL DEFAULT FALSE,
     lote_id                 UUID REFERENCES lotes(id)
 );
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_tratamientos (
     evento_id           UUID PRIMARY KEY REFERENCES eventos(id),
     animal_id           UUID NOT NULL REFERENCES animales(id),
@@ -357,9 +318,7 @@ CREATE INDEX IF NOT EXISTS idx_tratamientos_animal
     ON evento_tratamientos(animal_id);
 CREATE INDEX IF NOT EXISTS idx_tratamientos_carencia
     ON evento_tratamientos(animal_id, fecha_fin_carencia);
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_diagnosticos (
     evento_id       UUID PRIMARY KEY REFERENCES eventos(id),
     animal_id       UUID NOT NULL REFERENCES animales(id),
@@ -368,9 +327,7 @@ CREATE TABLE IF NOT EXISTS evento_diagnosticos (
     con_tratamiento BOOLEAN NOT NULL DEFAULT FALSE,
     tratamiento_id  UUID REFERENCES evento_tratamientos(evento_id)
 );
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_servicios (
     evento_id                   UUID PRIMARY KEY REFERENCES eventos(id),
     hembra_id                   UUID NOT NULL REFERENCES animales(id),
@@ -380,9 +337,7 @@ CREATE TABLE IF NOT EXISTS evento_servicios (
     codigo_semen                TEXT,
     fecha_prevista_diagnostico  DATE
 );
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_diagnosticos_prenez (
     evento_id           UUID PRIMARY KEY REFERENCES eventos(id),
     hembra_id           UUID NOT NULL REFERENCES animales(id),
@@ -392,9 +347,7 @@ CREATE TABLE IF NOT EXISTS evento_diagnosticos_prenez (
     veterinario         TEXT,
     fecha_probable_parto DATE
 );
-""")
 
-    op.execute("""
 CREATE TABLE IF NOT EXISTS evento_pariciones (
     evento_id   UUID PRIMARY KEY REFERENCES eventos(id),
     madre_id    UUID NOT NULL REFERENCES animales(id),
@@ -402,10 +355,8 @@ CREATE TABLE IF NOT EXISTS evento_pariciones (
     tipo_parto  TEXT CHECK (tipo_parto IN ('normal','distocico','asistido')),
     estado_cria TEXT CHECK (estado_cria IN ('vivo','nacido_muerto'))
 );
-""")
 
-    # ── Bloque 6: Eventos económicos ─────────────────────────────────────────
-    op.execute("""
+-- ── Bloque 6: Eventos económicos ─────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS eventos_economicos (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -430,10 +381,8 @@ CREATE INDEX IF NOT EXISTS idx_ee_lote
     ON eventos_economicos(lote_id) WHERE lote_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_ee_establecimiento
     ON eventos_economicos(establecimiento_id);
-""")
 
-    # ── Bloque 7: Alertas ────────────────────────────────────────────────────
-    op.execute("""
+-- ── Bloque 7: Alertas ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS alertas (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -458,10 +407,8 @@ CREATE TABLE IF NOT EXISTS alertas (
 CREATE INDEX IF NOT EXISTS idx_alertas_establecimiento
     ON alertas(establecimiento_id, activa)
     WHERE activa = TRUE;
-""")
 
-    # ── Bloque 8: Importaciones CSV ──────────────────────────────────────────
-    op.execute("""
+-- ── Bloque 8: Importaciones CSV ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS importaciones (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     establecimiento_id  UUID NOT NULL REFERENCES establecimientos(id),
@@ -476,10 +423,8 @@ CREATE TABLE IF NOT EXISTS importaciones (
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     completado_at       TIMESTAMPTZ
 );
-""")
 
-    # ── Bloque 9: Row Level Security ─────────────────────────────────────────
-    op.execute("""
+-- ── Bloque 9: Row Level Security ─────────────────────────────────────────
 CREATE OR REPLACE FUNCTION mis_establecimientos()
 RETURNS SETOF UUID
 LANGUAGE sql SECURITY DEFINER STABLE AS $$
@@ -488,46 +433,46 @@ LANGUAGE sql SECURITY DEFINER STABLE AS $$
     WHERE user_id = auth.uid()
       AND activo = TRUE
 $$;
-""")
 
-    tablas_con_est_id = [
-        "establecimientos",
-        "potreros",
-        "lotes",
-        "animales",
-        "eventos",
-        "eventos_economicos",
-        "alertas",
-        "importaciones",
-    ]
-    for tabla in tablas_con_est_id:
-        op.execute(f"ALTER TABLE {tabla} ENABLE ROW LEVEL SECURITY;")
+ALTER TABLE establecimientos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE potreros ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lotes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE animales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE eventos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE eventos_economicos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE alertas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE importaciones ENABLE ROW LEVEL SECURITY;
 
-    tablas_join = [
-        "animal_categorias",
-        "eventos_animales",
-        "tipos_de_cambio",
-        "categorias",
-        "evento_pesajes",
-        "evento_movimientos",
-        "evento_vacunaciones",
-        "evento_tratamientos",
-        "evento_diagnosticos",
-        "evento_servicios",
-        "evento_diagnosticos_prenez",
-        "evento_pariciones",
-    ]
-    for tabla in tablas_join:
-        op.execute(f"ALTER TABLE {tabla} ENABLE ROW LEVEL SECURITY;")
+ALTER TABLE animal_categorias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE eventos_animales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tipos_de_cambio ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categorias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_pesajes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_movimientos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_vacunaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_tratamientos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_diagnosticos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_servicios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_diagnosticos_prenez ENABLE ROW LEVEL SECURITY;
+ALTER TABLE evento_pariciones ENABLE ROW LEVEL SECURITY;
 
-    for tabla in tablas_con_est_id:
-        col = "id" if tabla == "establecimientos" else "establecimiento_id"
-        op.execute(f"""
-            CREATE POLICY "acceso por establecimiento" ON {tabla}
-                FOR ALL USING ({col} IN (SELECT mis_establecimientos()));
-        """)
+CREATE POLICY "acceso por establecimiento" ON establecimientos
+    FOR ALL USING (id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON potreros
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON lotes
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON animales
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON eventos
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON eventos_economicos
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON alertas
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
+CREATE POLICY "acceso por establecimiento" ON importaciones
+    FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
 
-    op.execute("""
 CREATE POLICY "acceso via animal" ON animal_categorias
     FOR ALL USING (
         animal_id IN (
@@ -535,9 +480,7 @@ CREATE POLICY "acceso via animal" ON animal_categorias
             WHERE establecimiento_id IN (SELECT mis_establecimientos())
         )
     );
-""")
 
-    op.execute("""
 CREATE POLICY "acceso via evento" ON eventos_animales
     FOR ALL USING (
         evento_id IN (
@@ -545,32 +488,70 @@ CREATE POLICY "acceso via evento" ON eventos_animales
             WHERE establecimiento_id IN (SELECT mis_establecimientos())
         )
     );
-""")
 
-    op.execute("""
 CREATE POLICY "acceso por establecimiento" ON categorias
     FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
 CREATE POLICY "acceso por establecimiento" ON tipos_de_cambio
     FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
-""")
 
-    for tabla in [
-        "evento_pesajes", "evento_movimientos", "evento_vacunaciones",
-        "evento_tratamientos", "evento_diagnosticos", "evento_servicios",
-        "evento_diagnosticos_prenez", "evento_pariciones",
-    ]:
-        op.execute(f"""
-            CREATE POLICY "acceso via evento" ON {tabla}
-                FOR ALL USING (
-                    evento_id IN (
-                        SELECT id FROM eventos
-                        WHERE establecimiento_id IN (SELECT mis_establecimientos())
-                    )
-                );
-        """)
+CREATE POLICY "acceso via evento" ON evento_pesajes
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_movimientos
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_vacunaciones
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_tratamientos
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_diagnosticos
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_servicios
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_diagnosticos_prenez
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
+CREATE POLICY "acceso via evento" ON evento_pariciones
+    FOR ALL USING (
+        evento_id IN (
+            SELECT id FROM eventos
+            WHERE establecimiento_id IN (SELECT mis_establecimientos())
+        )
+    );
 
-    # ── Bloque 10: Triggers ──────────────────────────────────────────────────
-    op.execute("""
+-- ── Bloque 10: Triggers ──────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION actualizar_ubicacion_animal()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
@@ -611,9 +592,7 @@ $$;
 CREATE TRIGGER trg_actualizar_ubicacion
     AFTER INSERT ON evento_movimientos
     FOR EACH ROW EXECUTE FUNCTION actualizar_ubicacion_animal();
-""")
 
-    op.execute("""
 CREATE OR REPLACE FUNCTION verificar_cierre_lote()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 DECLARE
@@ -652,10 +631,8 @@ CREATE TRIGGER trg_cierre_lote
     FOR EACH ROW
     WHEN (NEW.tipo_movimiento IN ('egreso_venta','egreso_faena','egreso_muerte'))
     EXECUTE FUNCTION verificar_cierre_lote();
-""")
 
-    # ── Funciones de dominio ──────────────────────────────────────────────────
-    op.execute("""
+-- ── Funciones de dominio ──────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION animales_con_carencia_activa(p_animal_ids UUID[])
 RETURNS TABLE (animal_id UUID, fecha_fin_carencia DATE, medicamento TEXT)
 LANGUAGE sql STABLE AS $$
@@ -671,9 +648,7 @@ LANGUAGE sql STABLE AS $$
     GROUP BY et.animal_id
     HAVING max(et.fecha_fin_carencia) >= CURRENT_DATE;
 $$;
-""")
 
-    op.execute("""
 CREATE OR REPLACE FUNCTION calcular_gdp(p_animal_id UUID)
 RETURNS TABLE (gdp_g_dia NUMERIC, peso_anterior NUMERIC, dias_intervalo INTEGER)
 LANGUAGE sql STABLE AS $$
@@ -707,9 +682,7 @@ LANGUAGE sql STABLE AS $$
     FROM ultimos_dos
     HAVING count(*) = 2;
 $$;
-""")
 
-    op.execute("""
 CREATE OR REPLACE FUNCTION seed_categorias_establecimiento(p_establecimiento_id UUID)
 RETURNS VOID LANGUAGE sql AS $$
     INSERT INTO categorias (establecimiento_id, nombre, coeficiente_ug) VALUES
@@ -723,23 +696,3 @@ RETURNS VOID LANGUAGE sql AS $$
         (p_establecimiento_id, 'buey',         1.00)
     ON CONFLICT (establecimiento_id, nombre) DO NOTHING;
 $$;
-""")
-
-
-def downgrade() -> None:
-    tables = [
-        "evento_pariciones", "evento_diagnosticos_prenez", "evento_servicios",
-        "evento_diagnosticos", "evento_tratamientos", "evento_vacunaciones",
-        "evento_movimientos", "evento_pesajes", "eventos_animales", "eventos",
-        "animal_categorias", "animales", "alertas", "importaciones",
-        "eventos_economicos", "lotes", "potreros", "categorias",
-        "tipos_de_cambio", "usuarios_establecimientos", "establecimientos",
-    ]
-    for t in tables:
-        op.execute(f"DROP TABLE IF EXISTS {t} CASCADE;")
-    op.execute("DROP FUNCTION IF EXISTS mis_establecimientos() CASCADE;")
-    op.execute("DROP FUNCTION IF EXISTS actualizar_ubicacion_animal() CASCADE;")
-    op.execute("DROP FUNCTION IF EXISTS verificar_cierre_lote() CASCADE;")
-    op.execute("DROP FUNCTION IF EXISTS animales_con_carencia_activa(UUID[]) CASCADE;")
-    op.execute("DROP FUNCTION IF EXISTS calcular_gdp(UUID) CASCADE;")
-    op.execute("DROP FUNCTION IF EXISTS seed_categorias_establecimiento(UUID) CASCADE;")
