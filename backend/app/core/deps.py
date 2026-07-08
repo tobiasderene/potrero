@@ -68,9 +68,10 @@ async def get_db(
         )
     )
     row = diag.first()
-    logger.info(
-        "RLS debug: claim.sub=%r claims=%r current_user=%r expected=%s",
-        row[0], row[1], row[2], user_id,
+    print(
+        f"RLS debug: claim.sub={row[0]!r} claims={row[1]!r} "
+        f"current_user={row[2]!r} expected={user_id}",
+        flush=True,
     )
 
     return db
