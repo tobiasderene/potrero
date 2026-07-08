@@ -443,6 +443,10 @@ ALTER TABLE eventos_economicos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alertas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE importaciones ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE usuarios_establecimientos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "acceso propio" ON usuarios_establecimientos
+    FOR ALL USING (user_id = auth.uid());
+
 ALTER TABLE animal_categorias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE eventos_animales ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tipos_de_cambio ENABLE ROW LEVEL SECURITY;
@@ -456,8 +460,13 @@ ALTER TABLE evento_servicios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evento_diagnosticos_prenez ENABLE ROW LEVEL SECURITY;
 ALTER TABLE evento_pariciones ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "acceso por establecimiento" ON establecimientos
-    FOR ALL USING (id IN (SELECT mis_establecimientos()));
+CREATE POLICY "crear establecimiento propio" ON establecimientos
+    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "ver mi establecimiento" ON establecimientos
+    FOR SELECT USING (id IN (SELECT mis_establecimientos()));
+CREATE POLICY "actualizar mi establecimiento" ON establecimientos
+    FOR UPDATE USING (id IN (SELECT mis_establecimientos()))
+    WITH CHECK (id IN (SELECT mis_establecimientos()));
 CREATE POLICY "acceso por establecimiento" ON potreros
     FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
 CREATE POLICY "acceso por establecimiento" ON lotes

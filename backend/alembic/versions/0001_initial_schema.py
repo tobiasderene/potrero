@@ -503,6 +503,12 @@ $$;
     for tabla in tablas_con_est_id:
         op.execute(f"ALTER TABLE {tabla} ENABLE ROW LEVEL SECURITY;")
 
+    op.execute("""
+ALTER TABLE usuarios_establecimientos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "acceso propio" ON usuarios_establecimientos
+    FOR ALL USING (user_id = auth.uid());
+""")
+
     tablas_join = [
         "animal_categorias",
         "eventos_animales",
@@ -520,11 +526,20 @@ $$;
     for tabla in tablas_join:
         op.execute(f"ALTER TABLE {tabla} ENABLE ROW LEVEL SECURITY;")
 
-    for tabla in tablas_con_est_id:
-        col = "id" if tabla == "establecimientos" else "establecimiento_id"
+    op.execute("""
+CREATE POLICY "crear establecimiento propio" ON establecimientos
+    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "ver mi establecimiento" ON establecimientos
+    FOR SELECT USING (id IN (SELECT mis_establecimientos()));
+CREATE POLICY "actualizar mi establecimiento" ON establecimientos
+    FOR UPDATE USING (id IN (SELECT mis_establecimientos()))
+    WITH CHECK (id IN (SELECT mis_establecimientos()));
+""")
+
+    for tabla in [t for t in tablas_con_est_id if t != "establecimientos"]:
         op.execute(f"""
             CREATE POLICY "acceso por establecimiento" ON {tabla}
-                FOR ALL USING ({col} IN (SELECT mis_establecimientos()));
+                FOR ALL USING (establecimiento_id IN (SELECT mis_establecimientos()));
         """)
 
     op.execute("""

@@ -26,10 +26,14 @@ async def crear_establecimiento(
         )
 
     establecimiento = await crud_est.create(db, data)
-    await crud_cat.seed_para_establecimiento(db, establecimiento.id)
+    # El vínculo usuario↔establecimiento debe crearse ANTES de sembrar categorías:
+    # la policy RLS de `categorias` exige que mis_establecimientos() ya devuelva
+    # este establecimiento_id, y solo lo hace una vez que existe esta fila
+    # (visible dentro de la misma transacción aunque no esté comiteada todavía).
     ue = await crud_est.create_usuario_establecimiento(
         db, user_id, establecimiento.id, rol="propietario"
     )
+    await crud_cat.seed_para_establecimiento(db, establecimiento.id)
     await db.commit()
     await db.refresh(establecimiento)
     await db.refresh(ue)
