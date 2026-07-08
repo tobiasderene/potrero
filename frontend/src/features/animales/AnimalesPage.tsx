@@ -89,6 +89,7 @@ export function AnimalesPage() {
   }
 
   const setFilter = (key: keyof AnimalFilters, value: string | undefined) => {
+    debugger
     setFilters(f => ({ ...f, [key]: value }))
     resetCursor()
   }
