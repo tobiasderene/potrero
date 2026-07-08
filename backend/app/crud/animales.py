@@ -106,6 +106,35 @@ async def get_categorias_actuales(
     return {row.animal_id: row.categoria for row in result}
 
 
+async def cambiar_categoria(
+    db: AsyncSession,
+    animal: Animal,
+    nueva_categoria: str,
+    user_id: uuid.UUID,
+) -> AnimalCategoria:
+    actual = (await db.execute(
+        select(AnimalCategoria).where(
+            AnimalCategoria.animal_id == animal.id,
+            AnimalCategoria.fecha_fin.is_(None),
+        )
+    )).scalar_one_or_none()
+
+    hoy = date.today()
+    if actual:
+        actual.fecha_fin = hoy
+        await db.flush()
+
+    nueva = AnimalCategoria(
+        animal_id=animal.id,
+        categoria=nueva_categoria,
+        fecha_inicio=hoy,
+        usuario_id=user_id,
+    )
+    db.add(nueva)
+    await db.flush()
+    return nueva
+
+
 async def update(db: AsyncSession, animal: Animal, data: AnimalUpdate) -> Animal:
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(animal, field, value)

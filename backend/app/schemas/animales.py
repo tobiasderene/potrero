@@ -58,3 +58,13 @@ class AnimalRead(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class CambioCategoria(BaseModel):
+    categoria: str
+
+    @model_validator(mode="after")
+    def validar(self):
+        if self.categoria not in CATEGORIAS_VALIDAS:
+            raise ValueError(f"Categoria invalida. Use uno de: {', '.join(CATEGORIAS_VALIDAS)}")
+        return self

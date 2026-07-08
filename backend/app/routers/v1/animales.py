@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user_id, get_establecimiento_id, get_db
 from app.crud import animales as crud
-from app.schemas.animales import AnimalCreate, AnimalRead, AnimalUpdate
+from app.schemas.animales import AnimalCreate, AnimalRead, AnimalUpdate, CambioCategoria
 from app.schemas.common import Paginated
 from app.services import animales as svc
 
@@ -71,6 +71,19 @@ async def get_animal(
     animal = await crud.get_by_id(db, animal_id, establecimiento_id)
     if not animal:
         raise HTTPException(status_code=404, detail="Animal no encontrado")
+    cats = await crud.get_categorias_actuales(db, [animal_id])
+    return _with_categoria(animal, cats)
+
+
+@router.post("/{animal_id}/categoria", response_model=AnimalRead)
+async def cambiar_categoria(
+    animal_id: uuid.UUID,
+    data: CambioCategoria,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
+    db: AsyncSession = Depends(get_db),
+) -> AnimalRead:
+    animal = await svc.cambiar_categoria_animal(db, animal_id, establecimiento_id, data, user_id)
     cats = await crud.get_categorias_actuales(db, [animal_id])
     return _with_categoria(animal, cats)
 

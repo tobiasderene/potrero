@@ -88,6 +88,20 @@ export function useActualizarAnimal(id: string) {
   })
 }
 
+export function useCambiarCategoria(id: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (categoria: string) => {
+      const { data } = await api.post<AnimalRead>(`/api/v1/animales/${id}/categoria`, { categoria })
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["animales"] })
+      qc.invalidateQueries({ queryKey: ["animales", id] })
+    },
+  })
+}
+
 export function useImportarCSV() {
   const qc = useQueryClient()
   return useMutation({

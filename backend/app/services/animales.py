@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import animales as crud
-from app.schemas.animales import AnimalCreate, AnimalUpdate
+from app.schemas.animales import AnimalCreate, AnimalUpdate, CambioCategoria
 
 
 async def crear_animal(
@@ -26,6 +26,23 @@ async def crear_animal(
         if "uq_animales_numero_campo" in orig or ("numero_campo" in orig and "unique" in orig):
             raise HTTPException(status_code=409, detail=f"Ya existe un animal con numero de campo '{data.numero_campo}'")
         raise HTTPException(status_code=409, detail="Identificacion duplicada")
+
+
+async def cambiar_categoria_animal(
+    db: AsyncSession,
+    animal_id: uuid.UUID,
+    establecimiento_id: uuid.UUID,
+    data: CambioCategoria,
+    user_id: uuid.UUID,
+) -> Animal:
+    animal = await crud.get_by_id(db, animal_id, establecimiento_id)
+    if not animal:
+        raise HTTPException(status_code=404, detail="Animal no encontrado")
+    if animal.estado != "activo":
+        raise HTTPException(status_code=400, detail="Solo se puede cambiar la categoría de animales activos")
+    await crud.cambiar_categoria(db, animal, data.categoria, user_id)
+    await db.commit()
+    return animal
 
 
 async def actualizar_animal(
