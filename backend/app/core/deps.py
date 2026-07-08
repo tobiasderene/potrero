@@ -1,5 +1,4 @@
 import json
-import logging
 import uuid
 
 from fastapi import Depends, HTTPException, status
@@ -9,8 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_supabase_token
 from app.db.session import get_db as _get_raw_db
-
-logger = logging.getLogger(__name__)
 
 bearer_scheme = HTTPBearer()
 
@@ -58,23 +55,6 @@ async def get_db(
         ),
         {"claims": claims, "sub": str(user_id)},
     )
-
-    # DEBUG temporal — llama a current_uid() (el wrapper que usan las
-    # policies) tal como lo ve potrero_app en esta misma conexión.
-    diag = await db.execute(
-        text(
-            "SELECT current_setting('request.jwt.claim.sub', true), "
-            "current_setting('request.jwt.claims', true), current_user, "
-            "current_uid()"
-        )
-    )
-    row = diag.first()
-    print(
-        f"RLS debug: claim.sub={row[0]!r} claims={row[1]!r} "
-        f"current_user={row[2]!r} current_uid()={row[3]!r} expected={user_id}",
-        flush=True,
-    )
-
     return db
 
 
