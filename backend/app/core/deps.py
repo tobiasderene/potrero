@@ -1,12 +1,13 @@
+import json
 import uuid
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_supabase_token
-from app.db.session import get_db
+from app.db.session import get_db as _get_raw_db
 
 bearer_scheme = HTTPBearer()
 
@@ -28,6 +29,28 @@ async def get_current_user_id(
             detail="Token sin sub",
         )
     return uuid.UUID(sub)
+
+
+async def get_db(
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    db: AsyncSession = Depends(_get_raw_db),
+) -> AsyncSession:
+    """
+    Sesión de DB con el contexto RLS del usuario ya seteado.
+
+    La conexión corre con un rol sin BYPASSRLS (a diferencia del rol
+    "postgres"), así que sin este SET las policies basadas en auth.uid()
+    verían NULL y no aplicarían el filtro por establecimiento. Se usa
+    is_local=false (no SET LOCAL) porque varios endpoints hacen commit()
+    a mitad de request y siguen consultando después (ej. refresh()); un
+    SET LOCAL se perdería al terminar esa transacción.
+    """
+    claims = json.dumps({"sub": str(user_id), "role": "authenticated"})
+    await db.execute(
+        text("SELECT set_config('request.jwt.claims', :claims, false)"),
+        {"claims": claims},
+    )
+    return db
 
 
 async def get_establecimiento_id(
