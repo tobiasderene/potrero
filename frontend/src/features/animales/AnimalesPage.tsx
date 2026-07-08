@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Plus, Upload, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import {
@@ -22,6 +22,9 @@ const CATEGORIAS = ["ternero", "ternera", "novillo", "vaquillona", "vaca", "vaca
 
 // Sentinel para representar "sin filtro" en los Select (Radix no permite value="")
 const ALL = "__todos__"
+
+// Referencia estable para evitar loops en useReactTable mientras `data` es undefined
+const EMPTY_ANIMALES: AnimalRead[] = []
 
 const columns: ColumnDef<AnimalRead>[] = [
   {
@@ -65,12 +68,6 @@ const columns: ColumnDef<AnimalRead>[] = [
 ]
 
 export function AnimalesPage() {
-  const renderCount = useRef(0)
-  renderCount.current++
-  if (renderCount.current > 50) {
-    throw new Error(`AnimalesPage renderizó ${renderCount.current} veces seguidas — hay un loop`)
-  }
-
   const navigate = useNavigate()
   const [filters, setFilters] = useState<AnimalFilters>({ estado: "activo", limit: 20 })
   const [searchTipo, setSearchTipo] = useState<"caravana" | "numero_campo">("caravana")
@@ -129,7 +126,7 @@ export function AnimalesPage() {
   const totalPages = data ? Math.ceil(data.total / limit) : 1
 
   const table = useReactTable({
-    data: data?.items ?? [],
+    data: data?.items ?? EMPTY_ANIMALES,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
