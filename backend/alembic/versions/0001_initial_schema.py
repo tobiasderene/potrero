@@ -490,6 +490,18 @@ LANGUAGE sql SECURITY DEFINER STABLE AS $$
 $$;
 """)
 
+    # Wrapper SECURITY DEFINER para auth.uid(): el rol de app (potrero_app)
+    # no tiene USAGE sobre el schema "auth" (es de supabase_auth_admin),
+    # así que las policies que necesitan auth.uid() directamente (no vía
+    # mis_establecimientos(), que ya es SECURITY DEFINER) pasan por acá.
+    op.execute("""
+CREATE OR REPLACE FUNCTION public.current_uid()
+RETURNS UUID
+LANGUAGE sql SECURITY DEFINER STABLE AS $$
+    SELECT auth.uid();
+$$;
+""")
+
     tablas_con_est_id = [
         "establecimientos",
         "potreros",
@@ -506,7 +518,7 @@ $$;
     op.execute("""
 ALTER TABLE usuarios_establecimientos ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "acceso propio" ON usuarios_establecimientos
-    FOR ALL USING (user_id = auth.uid());
+    FOR ALL USING (user_id = public.current_uid());
 """)
 
     tablas_join = [
@@ -528,7 +540,7 @@ CREATE POLICY "acceso propio" ON usuarios_establecimientos
 
     op.execute("""
 CREATE POLICY "crear establecimiento propio" ON establecimientos
-    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+    FOR INSERT WITH CHECK (public.current_uid() IS NOT NULL);
 CREATE POLICY "ver mi establecimiento" ON establecimientos
     FOR SELECT USING (id IN (SELECT mis_establecimientos()));
 CREATE POLICY "actualizar mi establecimiento" ON establecimientos
