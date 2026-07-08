@@ -1,0 +1,561 @@
+{
+  "ejecutado_en": "2026-07-08T15:35:34.059286+00:00",
+  "aislamiento_rls": true,
+  "checks": {
+    "total_potreros_a": 3,
+    "total_potreros_b": 3,
+    "establecimiento_ids_distintos": true,
+    "cross_status_token_a_vs_potrero_b": 404,
+    "cross_status_token_b_vs_potrero_a": 404,
+    "establecimientos_distintos": true
+  },
+  "requests": [
+    {
+      "method": "POST",
+      "url": "https://xbjhdtajizeooyisxauo.supabase.co/auth/v1/signup",
+      "status": 200,
+      "body": {
+        "id": "a91c8a9b-2557-4763-b3b5-00d103555771",
+        "aud": "authenticated",
+        "role": "",
+        "email": "seed.estancia.a@gmail.com",
+        "phone": "",
+        "confirmation_sent_at": "2026-07-08T15:35:19.087652304Z",
+        "app_metadata": {
+          "provider": "email",
+          "providers": [
+            "email"
+          ]
+        },
+        "user_metadata": {},
+        "identities": [],
+        "created_at": "2026-07-08T15:35:19.087652304Z",
+        "updated_at": "2026-07-08T15:35:19.087652304Z",
+        "is_anonymous": false
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://xbjhdtajizeooyisxauo.supabase.co/auth/v1/token?grant_type=password",
+      "status": 200,
+      "body": {
+        "access_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImUzMGY3ZTJlLWIyZjYtNDI2NC04NjlhLWE0YTk1ZDQzNDcyYSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3hiamhkdGFqaXplb295aXN4YXVvLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI1MzdiODhjNi00MzVjLTQzNjctYjc1ZS1hMjkxYTU1MjNjNjgiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgzNTI4NTE5LCJpYXQiOjE3ODM1MjQ5MTksImVtYWlsIjoic2VlZC5lc3RhbmNpYS5hQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJzZWVkLmVzdGFuY2lhLmFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiNTM3Yjg4YzYtNDM1Yy00MzY3LWI3NWUtYTI5MWE1NTIzYzY4In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODM1MjQ5MTl9XSwic2Vzc2lvbl9pZCI6ImU2Y2Q5ZGY5LTUzMjYtNGMzZS05YjVjLTFiYmU3MjUwYzEzNCIsImlzX2Fub255bW91cyI6ZmFsc2V9.ctvaPEAxXhbQS7i0hH6R7LrmcG-Y1Gcv4kFNcvTm1bfNxBzJSzWGS9fSBxIH0BBSNY-_UYeXva_SEMlmu9gd4w",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "expires_at": 1783528519,
+        "refresh_token": "a3caricgjhtx",
+        "user": {
+          "id": "537b88c6-435c-4367-b75e-a291a5523c68",
+          "aud": "authenticated",
+          "role": "authenticated",
+          "email": "seed.estancia.a@gmail.com",
+          "email_confirmed_at": "2026-07-08T14:42:34.126427Z",
+          "phone": "",
+          "confirmation_sent_at": "2026-07-08T14:41:21.144748Z",
+          "confirmed_at": "2026-07-08T14:42:34.126427Z",
+          "last_sign_in_at": "2026-07-08T15:35:19.49192772Z",
+          "app_metadata": {
+            "provider": "email",
+            "providers": [
+              "email"
+            ]
+          },
+          "user_metadata": {
+            "email": "seed.estancia.a@gmail.com",
+            "email_verified": true,
+            "phone_verified": false,
+            "sub": "537b88c6-435c-4367-b75e-a291a5523c68"
+          },
+          "identities": [
+            {
+              "identity_id": "3d13a3e9-3126-4361-ad05-20f8605c1fb6",
+              "id": "537b88c6-435c-4367-b75e-a291a5523c68",
+              "user_id": "537b88c6-435c-4367-b75e-a291a5523c68",
+              "identity_data": {
+                "email": "seed.estancia.a@gmail.com",
+                "email_verified": false,
+                "phone_verified": false,
+                "sub": "537b88c6-435c-4367-b75e-a291a5523c68"
+              },
+              "provider": "email",
+              "last_sign_in_at": "2026-07-08T14:41:21.142473Z",
+              "created_at": "2026-07-08T14:41:21.142525Z",
+              "updated_at": "2026-07-08T14:41:21.142525Z",
+              "email": "seed.estancia.a@gmail.com"
+            }
+          ],
+          "created_at": "2026-07-08T14:41:21.138317Z",
+          "updated_at": "2026-07-08T15:35:19.508843Z",
+          "is_anonymous": false
+        },
+        "weak_password": null
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/auth/me",
+      "status": 200,
+      "body": {
+        "user_id": "537b88c6-435c-4367-b75e-a291a5523c68",
+        "email": "seed.estancia.a@gmail.com",
+        "establecimiento": {
+          "id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "Estancia Don Pedro [Seed A]",
+          "nombre_propietario": "Pedro Ramírez",
+          "fecha_inicio_sistema": "2025-01-01",
+          "departamento": "Concepción",
+          "coordenadas_lat": null,
+          "coordenadas_lng": null,
+          "numero_senacsa": null,
+          "ejercicio_inicio_mes": 7,
+          "activo": true,
+          "created_at": "2026-07-08T14:42:35.141795Z",
+          "updated_at": "2026-07-08T14:42:35.141795Z"
+        },
+        "rol": "propietario"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/establecimientos",
+      "status": 409,
+      "body": {
+        "detail": "El usuario ya tiene un establecimiento asociado"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/categorias",
+      "status": 200,
+      "body": [
+        {
+          "id": "115d59ed-f3b4-4297-b74c-244962314926",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "buey",
+          "coeficiente_ug": "1.00",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "459a9407-978d-4522-8510-56bb91832fd4",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "novillo",
+          "coeficiente_ug": "0.70",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "42a444cc-2cf3-4d06-a6e8-03f16046e741",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "ternera",
+          "coeficiente_ug": "0.30",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "cc3aba7c-be38-44e9-9e98-107cc97b375f",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "ternero",
+          "coeficiente_ug": "0.30",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "978c10ff-5491-4eb6-9df8-05b3235309fa",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "toro",
+          "coeficiente_ug": "1.20",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "75e1e28c-1e61-44b3-b20b-971f1e5f4a3d",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "vaca",
+          "coeficiente_ug": "1.00",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "bd85b7aa-cc33-4472-9a20-0db91238bf06",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "vaca_con_cria",
+          "coeficiente_ug": "1.20",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        },
+        {
+          "id": "a84fb089-0e91-4ea0-a47b-a79f7e219ffd",
+          "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+          "nombre": "vaquillona",
+          "coeficiente_ug": "0.70",
+          "activo": true,
+          "updated_at": "2026-07-08T14:42:35.119876Z"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "url": "https://xbjhdtajizeooyisxauo.supabase.co/auth/v1/signup",
+      "status": 200,
+      "body": {
+        "id": "4ea7a9e7-aad3-4cc6-a7d5-fb940b811a06",
+        "aud": "authenticated",
+        "role": "",
+        "email": "seed.estancia.b@gmail.com",
+        "phone": "",
+        "confirmation_sent_at": "2026-07-08T15:35:28.472128683Z",
+        "app_metadata": {
+          "provider": "email",
+          "providers": [
+            "email"
+          ]
+        },
+        "user_metadata": {},
+        "identities": [],
+        "created_at": "2026-07-08T15:35:28.472128683Z",
+        "updated_at": "2026-07-08T15:35:28.472128683Z",
+        "is_anonymous": false
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://xbjhdtajizeooyisxauo.supabase.co/auth/v1/token?grant_type=password",
+      "status": 200,
+      "body": {
+        "access_token": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImUzMGY3ZTJlLWIyZjYtNDI2NC04NjlhLWE0YTk1ZDQzNDcyYSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3hiamhkdGFqaXplb295aXN4YXVvLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJjMzQxM2Y2Ni0wNDJlLTQzMjEtYTMxYi1hN2Q4ZDliMGRjMTEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgzNTI4NTI4LCJpYXQiOjE3ODM1MjQ5MjgsImVtYWlsIjoic2VlZC5lc3RhbmNpYS5iQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJzZWVkLmVzdGFuY2lhLmJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwic3ViIjoiYzM0MTNmNjYtMDQyZS00MzIxLWEzMWItYTdkOGQ5YjBkYzExIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODM1MjQ5Mjh9XSwic2Vzc2lvbl9pZCI6ImJmNjQ2Njk2LTI4NmYtNDE2Ni04MjU2LTMzNWU0NTIyODBkNSIsImlzX2Fub255bW91cyI6ZmFsc2V9.2lcaH_FoOw20hlJMmNCvw0fxFvkfmM-lYr4TbfrlQe7U7C84y5xAELOvKa4_oQhm9yTgcoEWSpKPY50_3BMWBQ",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "expires_at": 1783528528,
+        "refresh_token": "pi7c4422pdbi",
+        "user": {
+          "id": "c3413f66-042e-4321-a31b-a7d8d9b0dc11",
+          "aud": "authenticated",
+          "role": "authenticated",
+          "email": "seed.estancia.b@gmail.com",
+          "email_confirmed_at": "2026-07-08T14:43:04.512863Z",
+          "phone": "",
+          "confirmed_at": "2026-07-08T14:43:04.512863Z",
+          "last_sign_in_at": "2026-07-08T15:35:28.871133232Z",
+          "app_metadata": {
+            "provider": "email",
+            "providers": [
+              "email"
+            ]
+          },
+          "user_metadata": {
+            "email": "seed.estancia.b@gmail.com",
+            "email_verified": true,
+            "phone_verified": false,
+            "sub": "c3413f66-042e-4321-a31b-a7d8d9b0dc11"
+          },
+          "identities": [
+            {
+              "identity_id": "b1c760fe-823a-40ff-a0c6-58460ac29fc9",
+              "id": "c3413f66-042e-4321-a31b-a7d8d9b0dc11",
+              "user_id": "c3413f66-042e-4321-a31b-a7d8d9b0dc11",
+              "identity_data": {
+                "email": "seed.estancia.b@gmail.com",
+                "email_verified": false,
+                "phone_verified": false,
+                "sub": "c3413f66-042e-4321-a31b-a7d8d9b0dc11"
+              },
+              "provider": "email",
+              "last_sign_in_at": "2026-07-08T14:43:04.510171Z",
+              "created_at": "2026-07-08T14:43:04.51022Z",
+              "updated_at": "2026-07-08T14:43:04.51022Z",
+              "email": "seed.estancia.b@gmail.com"
+            }
+          ],
+          "created_at": "2026-07-08T14:43:04.505029Z",
+          "updated_at": "2026-07-08T15:35:28.873211Z",
+          "is_anonymous": false
+        },
+        "weak_password": null
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/auth/me",
+      "status": 200,
+      "body": {
+        "user_id": "c3413f66-042e-4321-a31b-a7d8d9b0dc11",
+        "email": "seed.estancia.b@gmail.com",
+        "establecimiento": {
+          "id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "Estancia La Palmera [Seed B]",
+          "nombre_propietario": "María González",
+          "fecha_inicio_sistema": "2025-01-01",
+          "departamento": "San Pedro",
+          "coordenadas_lat": null,
+          "coordenadas_lng": null,
+          "numero_senacsa": null,
+          "ejercicio_inicio_mes": 7,
+          "activo": true,
+          "created_at": "2026-07-08T14:43:05.294252Z",
+          "updated_at": "2026-07-08T14:43:05.294252Z"
+        },
+        "rol": "propietario"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/establecimientos",
+      "status": 409,
+      "body": {
+        "detail": "El usuario ya tiene un establecimiento asociado"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "method": "POST",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 500,
+      "body": "Internal Server Error"
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/categorias",
+      "status": 200,
+      "body": [
+        {
+          "id": "bb82933e-24b5-4d50-814d-85d2c6866003",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "buey",
+          "coeficiente_ug": "1.00",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "e227db04-d4ed-4119-a306-649c1716ddf3",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "novillo",
+          "coeficiente_ug": "0.70",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "63d3623f-e069-49ee-b964-4d94ab3b4797",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "ternera",
+          "coeficiente_ug": "0.30",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "4008dd28-dfdc-4cc2-94f0-43f42718c0ba",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "ternero",
+          "coeficiente_ug": "0.30",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "c6677428-a3c5-487c-bf90-ab90cc4a8021",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "toro",
+          "coeficiente_ug": "1.20",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "485a5594-a9a5-49ef-9dfa-4e25d8809d2c",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "vaca",
+          "coeficiente_ug": "1.00",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "20455dd2-760e-4b40-bf80-19aa7e973279",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "vaca_con_cria",
+          "coeficiente_ug": "1.20",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        },
+        {
+          "id": "8e68d177-a098-4061-b955-0289cb12fa29",
+          "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+          "nombre": "vaquillona",
+          "coeficiente_ug": "0.70",
+          "activo": true,
+          "updated_at": "2026-07-08T14:43:05.280272Z"
+        }
+      ]
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 200,
+      "body": {
+        "items": [
+          {
+            "id": "bbfa3356-c8fb-4b5d-a1ec-f436a7c576eb",
+            "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+            "nombre": "Potrero Central",
+            "superficie_ha": "75.25",
+            "tipo_pastura": "Pangola",
+            "capacidad_max_ug_ha": "0.90",
+            "estado": "activo",
+            "created_at": "2026-07-08T14:43:03.661576Z",
+            "updated_at": "2026-07-08T14:43:03.661576Z"
+          },
+          {
+            "id": "d23ba3ed-8ae6-4716-a473-3ce6801a35c0",
+            "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+            "nombre": "Potrero Norte",
+            "superficie_ha": "150.50",
+            "tipo_pastura": "Brachiaria",
+            "capacidad_max_ug_ha": "0.80",
+            "estado": "activo",
+            "created_at": "2026-07-08T14:43:02.775959Z",
+            "updated_at": "2026-07-08T14:43:02.775959Z"
+          },
+          {
+            "id": "2359b2e7-f4d6-4ba1-8463-8f3b2858d875",
+            "establecimiento_id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+            "nombre": "Potrero Sur",
+            "superficie_ha": "200.00",
+            "tipo_pastura": "Estrella Africana",
+            "capacidad_max_ug_ha": "1.00",
+            "estado": "activo",
+            "created_at": "2026-07-08T14:43:03.218620Z",
+            "updated_at": "2026-07-08T14:43:03.218620Z"
+          }
+        ],
+        "total": 3,
+        "limit": 20,
+        "offset": 0
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros",
+      "status": 200,
+      "body": {
+        "items": [
+          {
+            "id": "0fdd9341-1f27-4c97-a4a7-de28726de191",
+            "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+            "nombre": "Campo Chico",
+            "superficie_ha": "50.00",
+            "tipo_pastura": "Llorones",
+            "capacidad_max_ug_ha": "1.20",
+            "estado": "activo",
+            "created_at": "2026-07-08T14:43:06.120096Z",
+            "updated_at": "2026-07-08T14:43:06.120096Z"
+          },
+          {
+            "id": "53014d68-ef3a-40e5-aa0c-981bfb220411",
+            "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+            "nombre": "Campo Grande",
+            "superficie_ha": "300.00",
+            "tipo_pastura": "Brachiaria Humidicola",
+            "capacidad_max_ug_ha": "0.70",
+            "estado": "activo",
+            "created_at": "2026-07-08T14:43:05.701072Z",
+            "updated_at": "2026-07-08T14:43:05.701072Z"
+          },
+          {
+            "id": "322a1bac-865c-4f01-819b-3428ab2b219e",
+            "establecimiento_id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+            "nombre": "Descanso",
+            "superficie_ha": "120.00",
+            "tipo_pastura": "Grama Nativa",
+            "capacidad_max_ug_ha": "0.60",
+            "estado": "activo",
+            "created_at": "2026-07-08T14:43:06.552415Z",
+            "updated_at": "2026-07-08T14:43:06.552415Z"
+          }
+        ],
+        "total": 3,
+        "limit": 20,
+        "offset": 0
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros/0fdd9341-1f27-4c97-a4a7-de28726de191",
+      "status": 404,
+      "body": {
+        "detail": "Potrero no encontrado"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/potreros/bbfa3356-c8fb-4b5d-a1ec-f436a7c576eb",
+      "status": 404,
+      "body": {
+        "detail": "Potrero no encontrado"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/establecimientos/me",
+      "status": 200,
+      "body": {
+        "id": "7b16a7a9-6f14-4431-8975-ad4e3fefb6ad",
+        "nombre": "Estancia Don Pedro [Seed A]",
+        "nombre_propietario": "Pedro Ramírez",
+        "fecha_inicio_sistema": "2025-01-01",
+        "departamento": "Concepción",
+        "coordenadas_lat": null,
+        "coordenadas_lng": null,
+        "numero_senacsa": null,
+        "ejercicio_inicio_mes": 7,
+        "activo": true,
+        "created_at": "2026-07-08T14:42:35.141795Z",
+        "updated_at": "2026-07-08T14:42:35.141795Z"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://potrero-backend-218640624451.southamerica-east1.run.app/api/v1/establecimientos/me",
+      "status": 200,
+      "body": {
+        "id": "17914a7d-4395-4fa3-b2eb-7906dfac23da",
+        "nombre": "Estancia La Palmera [Seed B]",
+        "nombre_propietario": "María González",
+        "fecha_inicio_sistema": "2025-01-01",
+        "departamento": "San Pedro",
+        "coordenadas_lat": null,
+        "coordenadas_lng": null,
+        "numero_senacsa": null,
+        "ejercicio_inicio_mes": 7,
+        "activo": true,
+        "created_at": "2026-07-08T14:43:05.294252Z",
+        "updated_at": "2026-07-08T14:43:05.294252Z"
+      }
+    }
+  ]
+}

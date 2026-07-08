@@ -6,7 +6,7 @@ Llama exclusivamente a endpoints HTTP reales (Supabase Auth + backend Cloud Run)
 
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -152,30 +152,81 @@ def run():
         backend("get", "/categorias", token)
 
     # ── Fase 2: verificación de aislamiento RLS ──────────────────────
-    section("Verificación de aislamiento RLS")
+    section("Verificacion de aislamiento RLS")
 
     email_a, email_b = SEED_USERS[0]["email"], SEED_USERS[1]["email"]
     token_a, token_b = tokens[email_a], tokens[email_b]
 
-    print(f"\n--- GET /potreros con token de {email_a}  (debe ver solo sus 3)")
+    # Cada usuario ve solo sus propios potreros
+    print(f"\n--- GET /potreros con token A (debe ver solo sus 3)")
     body_a, _ = backend("get", "/potreros", token_a)
 
-    print(f"\n--- GET /potreros con token de {email_b}  (debe ver solo sus 3)")
+    print(f"\n--- GET /potreros con token B (debe ver solo sus 3)")
     body_b, _ = backend("get", "/potreros", token_b)
 
-    total_a = (body_a or {}).get("total", "?")
-    total_b = (body_b or {}).get("total", "?")
-    aislamiento_ok = total_a == 3 and total_b == 3
+    items_a = (body_a or {}).get("items", [])
+    items_b = (body_b or {}).get("items", [])
+    total_a = (body_a or {}).get("total", 0)
+    total_b = (body_b or {}).get("total", 0)
+
+    # Los establecimiento_id deben ser distintos entre A y B
+    est_ids_a = {p["establecimiento_id"] for p in items_a}
+    est_ids_b = {p["establecimiento_id"] for p in items_b}
+    ids_no_se_mezclan = est_ids_a.isdisjoint(est_ids_b) and len(est_ids_a) == 1 and len(est_ids_b) == 1
+
+    # Cross-check: token A intenta acceder a un potrero de B por ID -> debe ser 404
+    potrero_id_b = items_b[0]["id"] if items_b else None
+    cross_status_a = None
+    if potrero_id_b:
+        print(f"\n--- GET /potreros/{{id_de_B}} con token A (debe ser 404)")
+        _, cross_status_a = backend("get", f"/potreros/{potrero_id_b}", token_a)
+
+    # Cross-check: token B intenta acceder a un potrero de A por ID -> debe ser 404
+    potrero_id_a = items_a[0]["id"] if items_a else None
+    cross_status_b = None
+    if potrero_id_a:
+        print(f"\n--- GET /potreros/{{id_de_A}} con token B (debe ser 404)")
+        _, cross_status_b = backend("get", f"/potreros/{potrero_id_a}", token_b)
+
+    # Cross-check: GET /establecimientos/me de A con token B -> debe ser el de B, no el de A
+    print(f"\n--- GET /establecimientos/me con token A")
+    me_a, _ = backend("get", "/establecimientos/me", token_a)
+    print(f"\n--- GET /establecimientos/me con token B")
+    me_b, _ = backend("get", "/establecimientos/me", token_b)
+    est_id_a = (me_a or {}).get("id")
+    est_id_b = (me_b or {}).get("id")
+    establecimientos_distintos = est_id_a and est_id_b and est_id_a != est_id_b
+
+    aislamiento_ok = (
+        total_a == 3
+        and total_b == 3
+        and ids_no_se_mezclan
+        and cross_status_a == 404
+        and cross_status_b == 404
+        and establecimientos_distintos
+    )
 
     section("Resultado")
-    print(f"  Potreros visibles para Seed A : {total_a}  (esperado: 3)")
-    print(f"  Potreros visibles para Seed B : {total_b}  (esperado: 3)")
-    print(f"  Aislamiento RLS               : {'OK' if aislamiento_ok else 'FALLO'}")
+    print(f"  Potreros visibles para A             : {total_a}  (esperado: 3)")
+    print(f"  Potreros visibles para B             : {total_b}  (esperado: 3)")
+    print(f"  establecimiento_ids distintos        : {'OK' if ids_no_se_mezclan else 'FALLO'}")
+    print(f"  Token A no accede a potrero de B     : {'OK' if cross_status_a == 404 else f'FALLO (status={cross_status_a})'}")
+    print(f"  Token B no accede a potrero de A     : {'OK' if cross_status_b == 404 else f'FALLO (status={cross_status_b})'}")
+    print(f"  Establecimientos distintos           : {'OK' if establecimientos_distintos else 'FALLO'}")
+    print(f"  Aislamiento RLS multi-tenant         : {'OK' if aislamiento_ok else 'FALLO'}")
 
     # ── Reporte JSON ─────────────────────────────────────────────────
     report = {
-        "ejecutado_en": datetime.utcnow().isoformat() + "Z",
+        "ejecutado_en": datetime.now(timezone.utc).isoformat(),
         "aislamiento_rls": aislamiento_ok,
+        "checks": {
+            "total_potreros_a": total_a,
+            "total_potreros_b": total_b,
+            "establecimiento_ids_distintos": ids_no_se_mezclan,
+            "cross_status_token_a_vs_potrero_b": cross_status_a,
+            "cross_status_token_b_vs_potrero_a": cross_status_b,
+            "establecimientos_distintos": establecimientos_distintos,
+        },
         "requests": log,
     }
     report_path = "backend/scripts/seed_report.json"
