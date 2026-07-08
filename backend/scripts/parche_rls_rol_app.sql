@@ -27,26 +27,21 @@ GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO potrero_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
     GRANT EXECUTE ON FUNCTIONS TO potrero_app;
 
--- Si esta línea da error de permisos, comentala y seguí: auth.uid()
--- ya suele estar otorgada a PUBLIC en proyectos Supabase estándar.
-GRANT USAGE ON SCHEMA auth TO potrero_app;
-GRANT EXECUTE ON FUNCTION auth.uid() TO potrero_app;
+-- NOTA: "postgres" no tiene grant option sobre el schema "auth" (es de
+-- supabase_auth_admin) ni es miembro de ese rol, así que estas dos líneas
+-- fallan/no alcanzan. El acceso a auth.uid() para potrero_app se resuelve
+-- con un wrapper SECURITY DEFINER — ver parche_wrapper_auth_uid.sql.
+-- GRANT USAGE ON SCHEMA auth TO potrero_app;
+-- GRANT EXECUTE ON FUNCTION auth.uid() TO potrero_app;
 
 -- ── Fix: usuarios_establecimientos no tenía RLS ──────────────────
+-- (la policy final que usa public.current_uid() queda en
+-- parche_wrapper_auth_uid.sql, corré ese script después de este)
 ALTER TABLE usuarios_establecimientos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "acceso propio" ON usuarios_establecimientos
-    FOR ALL USING (user_id = auth.uid());
 
 -- ── Fix: policy de establecimientos bloqueaba su propia creación ─
+-- (las policies finales quedan en parche_wrapper_auth_uid.sql)
 DROP POLICY IF EXISTS "acceso por establecimiento" ON establecimientos;
-
-CREATE POLICY "crear establecimiento propio" ON establecimientos
-    FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "ver mi establecimiento" ON establecimientos
-    FOR SELECT USING (id IN (SELECT mis_establecimientos()));
-CREATE POLICY "actualizar mi establecimiento" ON establecimientos
-    FOR UPDATE USING (id IN (SELECT mis_establecimientos()))
-    WITH CHECK (id IN (SELECT mis_establecimientos()));
 
 -- No toca alembic_version: este parche alinea la base con la versión
 -- ya corregida de 0001_initial_schema.py/.sql, no es una revisión nueva.
