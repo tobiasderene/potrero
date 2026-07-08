@@ -7,6 +7,7 @@ import { LoginPage } from "@/features/auth/LoginPage"
 import { OnboardingPage } from "@/features/onboarding/OnboardingPage"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
+import { PotrerosPage } from "@/features/potreros/PotrerosPage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +29,7 @@ export default function App() {
               <Route element={<RequireEstablecimiento />}>
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/potreros" element={<PotrerosPage />} />
                 </Route>
               </Route>
             </Route>
