@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_current_user_id, get_establecimiento_id, get_db
 from app.crud import animales as crud
 from app.schemas.animales import AnimalCreate, AnimalRead, AnimalUpdate, CambioCategoria
-from app.schemas.common import Paginated
+from app.schemas.common import PaginatedCursor
 from app.services import animales as svc
 
 router = APIRouter(prefix="/animales", tags=["animales"])
@@ -18,7 +18,7 @@ def _with_categoria(animal, cats: dict) -> AnimalRead:
     return r
 
 
-@router.get("", response_model=Paginated[AnimalRead])
+@router.get("", response_model=PaginatedCursor[AnimalRead])
 async def list_animales(
     caravana: str | None = None,
     numero_campo: str | None = None,
@@ -26,11 +26,11 @@ async def list_animales(
     potrero_id: uuid.UUID | None = None,
     estado: str | None = Query(default="activo"),
     limit: int = Query(default=20, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
+    cursor: str | None = None,
     establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
     db: AsyncSession = Depends(get_db),
-) -> Paginated[AnimalRead]:
-    animals, total = await crud.list_with_filters(
+) -> PaginatedCursor[AnimalRead]:
+    animals, total, next_cursor = await crud.list_with_cursor(
         db, establecimiento_id,
         caravana=caravana,
         numero_campo=numero_campo,
@@ -38,14 +38,15 @@ async def list_animales(
         potrero_id=potrero_id,
         estado=estado,
         limit=limit,
-        offset=offset,
+        cursor=cursor,
     )
     cats = await crud.get_categorias_actuales(db, [a.id for a in animals])
-    return Paginated(
+    return PaginatedCursor(
         items=[_with_categoria(a, cats) for a in animals],
         total=total,
         limit=limit,
-        offset=offset,
+        next_cursor=next_cursor,
+        has_next=next_cursor is not None,
     )
 
 

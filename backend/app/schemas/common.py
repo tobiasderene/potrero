@@ -9,3 +9,11 @@ class Paginated(BaseModel, Generic[T]):
     total: int
     limit: int
     offset: int
+
+
+class PaginatedCursor(BaseModel, Generic[T]):
+    items: list[T]
+    total: int
+    limit: int
+    next_cursor: str | None = None
+    has_next: bool

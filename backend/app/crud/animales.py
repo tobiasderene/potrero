@@ -1,7 +1,8 @@
+import base64
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.animales import Animal, AnimalCategoria
@@ -89,6 +90,66 @@ async def list_with_filters(
         (await db.execute(base.order_by(Animal.caravana_senacsa.nulls_last(), Animal.numero_campo).limit(limit).offset(offset))).scalars().all()
     )
     return items, total
+
+
+def _encode_cursor(created_at: datetime, animal_id: uuid.UUID) -> str:
+    payload = f"{created_at.isoformat()}|{animal_id}"
+    return base64.b64encode(payload.encode()).decode()
+
+
+def _decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
+    payload = base64.b64decode(cursor.encode()).decode()
+    dt_str, id_str = payload.split("|", 1)
+    return datetime.fromisoformat(dt_str), uuid.UUID(id_str)
+
+
+async def list_with_cursor(
+    db: AsyncSession,
+    establecimiento_id: uuid.UUID,
+    caravana: str | None = None,
+    numero_campo: str | None = None,
+    categoria_filter: str | None = None,
+    potrero_id: uuid.UUID | None = None,
+    estado: str | None = "activo",
+    limit: int = 20,
+    cursor: str | None = None,
+) -> tuple[list[Animal], int, str | None]:
+    base = select(Animal).where(Animal.establecimiento_id == establecimiento_id)
+
+    if estado:
+        base = base.where(Animal.estado == estado)
+    if caravana:
+        base = base.where(Animal.caravana_senacsa.ilike(f"%{caravana}%"))
+    if numero_campo:
+        base = base.where(Animal.numero_campo.ilike(f"%{numero_campo}%"))
+    if potrero_id:
+        base = base.where(Animal.potrero_actual_id == potrero_id)
+    if categoria_filter:
+        subq = (
+            select(AnimalCategoria.animal_id)
+            .where(AnimalCategoria.categoria == categoria_filter, AnimalCategoria.fecha_fin.is_(None))
+            .scalar_subquery()
+        )
+        base = base.where(Animal.id.in_(subq))
+
+    total = (await db.execute(select(func.count()).select_from(base.subquery()))).scalar() or 0
+
+    if cursor:
+        cursor_dt, cursor_id = _decode_cursor(cursor)
+        base = base.where(tuple_(Animal.created_at, Animal.id) > (cursor_dt, cursor_id))
+
+    items = list(
+        (await db.execute(
+            base.order_by(Animal.created_at.asc(), Animal.id.asc()).limit(limit)
+        )).scalars().all()
+    )
+
+    next_cursor = None
+    if len(items) == limit:
+        last = items[-1]
+        next_cursor = _encode_cursor(last.created_at, last.id)
+
+    return items, total, next_cursor
 
 
 async def get_categorias_actuales(

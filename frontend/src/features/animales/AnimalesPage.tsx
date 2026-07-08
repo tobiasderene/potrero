@@ -1,6 +1,12 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Plus, Upload, Search } from "lucide-react"
+import { Plus, Upload, Search, ChevronLeft, ChevronRight } from "lucide-react"
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  type ColumnDef,
+} from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -10,14 +16,58 @@ import { AnimalForm } from "./components/AnimalForm"
 import { ImportacionCSV } from "./components/ImportacionCSV"
 import { useAnimales, type AnimalFilters } from "./hooks/useAnimales"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
+import type { AnimalRead } from "@/types/api"
 
 const CATEGORIAS = ["ternero", "ternera", "novillo", "vaquillona", "vaca", "vaca_con_cria", "toro", "buey"]
 
+const columns: ColumnDef<AnimalRead>[] = [
+  {
+    accessorKey: "caravana_senacsa",
+    header: "Caravana",
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.caravana_senacsa ?? "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "numero_campo",
+    header: "N° campo",
+    cell: ({ row }) => row.original.numero_campo ?? "—",
+  },
+  {
+    id: "categoria",
+    header: "Categoría",
+    cell: ({ row }) => (
+      <span className="capitalize">{row.original.categoria_actual?.replace(/_/g, " ") ?? "—"}</span>
+    ),
+  },
+  {
+    accessorKey: "sexo",
+    header: "Sexo",
+    cell: ({ row }) => <span className="capitalize">{row.original.sexo}</span>,
+  },
+  {
+    accessorKey: "raza",
+    header: "Raza",
+    cell: ({ row }) => row.original.raza ?? "—",
+  },
+  {
+    id: "estado",
+    header: "Estado",
+    cell: ({ row }) => (
+      <Badge variant={row.original.estado === "activo" ? "default" : "secondary"}>
+        {row.original.estado}
+      </Badge>
+    ),
+  },
+]
+
 export function AnimalesPage() {
   const navigate = useNavigate()
-  const [filters, setFilters] = useState<AnimalFilters>({ estado: "activo", limit: 50, offset: 0 })
+  const [filters, setFilters] = useState<AnimalFilters>({ estado: "activo", limit: 20 })
   const [searchTipo, setSearchTipo] = useState<"caravana" | "numero_campo">("caravana")
   const [search, setSearch] = useState("")
+  const [cursor, setCursor] = useState<string | undefined>(undefined)
+  const [cursorStack, setCursorStack] = useState<(string | undefined)[]>([])
   const [showForm, setShowForm] = useState(false)
   const [showCSV, setShowCSV] = useState(false)
 
@@ -27,10 +77,53 @@ export function AnimalesPage() {
     ...filters,
     caravana: searchTipo === "caravana" ? (search || undefined) : undefined,
     numero_campo: searchTipo === "numero_campo" ? (search || undefined) : undefined,
+    cursor,
   })
 
-  const setFilter = (key: keyof AnimalFilters, value: string | undefined) =>
-    setFilters(f => ({ ...f, [key]: value, offset: 0 }))
+  const resetCursor = () => {
+    setCursor(undefined)
+    setCursorStack([])
+  }
+
+  const setFilter = (key: keyof AnimalFilters, value: string | undefined) => {
+    setFilters(f => ({ ...f, [key]: value }))
+    resetCursor()
+  }
+
+  const handleSearch = (value: string) => {
+    setSearch(value)
+    resetCursor()
+  }
+
+  const handleSearchTipo = (value: "caravana" | "numero_campo") => {
+    setSearchTipo(value)
+    setSearch("")
+    resetCursor()
+  }
+
+  const goNext = () => {
+    if (data?.next_cursor) {
+      setCursorStack(s => [...s, cursor])
+      setCursor(data.next_cursor)
+    }
+  }
+
+  const goPrev = () => {
+    const stack = [...cursorStack]
+    const prev = stack.pop()
+    setCursorStack(stack)
+    setCursor(prev)
+  }
+
+  const limit = filters.limit ?? 20
+  const currentPage = cursorStack.length + 1
+  const totalPages = data ? Math.ceil(data.total / limit) : 1
+
+  const table = useReactTable({
+    data: data?.items ?? [],
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   return (
     <div className="p-6 space-y-5">
@@ -54,7 +147,7 @@ export function AnimalesPage() {
       {/* Filtros */}
       <div className="flex gap-3 flex-wrap">
         <div className="flex flex-1 min-w-56">
-          <Select value={searchTipo} onValueChange={(v: string) => { setSearchTipo(v as "caravana" | "numero_campo"); setSearch("") }}>
+          <Select value={searchTipo} onValueChange={(v: string) => handleSearchTipo(v as "caravana" | "numero_campo")}>
             <SelectTrigger className="w-36 rounded-r-none border-r-0 shrink-0">
               <SelectValue />
             </SelectTrigger>
@@ -69,7 +162,7 @@ export function AnimalesPage() {
               placeholder={searchTipo === "caravana" ? "AR001..." : "101..."}
               className="pl-8 rounded-l-none"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => handleSearch(e.target.value)}
             />
           </div>
         </div>
@@ -101,59 +194,61 @@ export function AnimalesPage() {
       <div className="rounded-md border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Caravana</th>
-              <th className="px-4 py-3 text-left font-medium">N° campo</th>
-              <th className="px-4 py-3 text-left font-medium">Categoría</th>
-              <th className="px-4 py-3 text-left font-medium">Sexo</th>
-              <th className="px-4 py-3 text-left font-medium">Raza</th>
-              <th className="px-4 py-3 text-left font-medium">Estado</th>
-            </tr>
+            {table.getHeaderGroups().map(hg => (
+              <tr key={hg.id}>
+                {hg.headers.map(h => (
+                  <th key={h.id} className="px-4 py-3 text-left font-medium">
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
           </thead>
           <tbody className="divide-y">
             {isLoading && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Cargando...</td></tr>
-            )}
-            {!isLoading && !data?.items.length && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">Sin animales</td></tr>
-            )}
-            {data?.items.map(a => (
-              <tr
-                key={a.id}
-                className="hover:bg-muted/30 cursor-pointer transition-colors"
-                onClick={() => navigate(`/animales/${a.id}`)}
-              >
-                <td className="px-4 py-3 font-mono text-xs">{a.caravana_senacsa ?? "—"}</td>
-                <td className="px-4 py-3">{a.numero_campo ?? "—"}</td>
-                <td className="px-4 py-3 capitalize">{a.categoria_actual?.replace("_", " ") ?? "—"}</td>
-                <td className="px-4 py-3 capitalize">{a.sexo}</td>
-                <td className="px-4 py-3">{a.raza ?? "—"}</td>
-                <td className="px-4 py-3">
-                  <Badge variant={a.estado === "activo" ? "default" : "secondary"}>
-                    {a.estado}
-                  </Badge>
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
+                  Cargando...
                 </td>
+              </tr>
+            )}
+            {!isLoading && !table.getRowModel().rows.length && (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
+                  Sin animales
+                </td>
+              </tr>
+            )}
+            {table.getRowModel().rows.map(row => (
+              <tr
+                key={row.id}
+                className="hover:bg-muted/30 cursor-pointer transition-colors"
+                onClick={() => navigate(`/animales/${row.original.id}`)}
+              >
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id} className="px-4 py-3">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Paginación */}
-      {data && data.total > data.limit && (
+      {/* Paginación cursor */}
+      {data && data.total > limit && (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Mostrando {(filters.offset ?? 0) + 1}–{Math.min((filters.offset ?? 0) + data.limit, data.total)} de {data.total}</span>
+          <span>Página {currentPage} de {totalPages} · {data.total} animales</span>
           <div className="flex gap-2">
-            <Button
-              variant="outline" size="sm"
-              disabled={!filters.offset}
-              onClick={() => setFilters(f => ({ ...f, offset: Math.max(0, (f.offset ?? 0) - (f.limit ?? 50)) }))}
-            >Anterior</Button>
-            <Button
-              variant="outline" size="sm"
-              disabled={(filters.offset ?? 0) + data.limit >= data.total}
-              onClick={() => setFilters(f => ({ ...f, offset: (f.offset ?? 0) + (f.limit ?? 50) }))}
-            >Siguiente</Button>
+            <Button variant="outline" size="sm" disabled={cursorStack.length === 0} onClick={goPrev}>
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Anterior
+            </Button>
+            <Button variant="outline" size="sm" disabled={!data.has_next} onClick={goNext}>
+              Siguiente
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
         </div>
       )}

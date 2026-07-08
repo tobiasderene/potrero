@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api, getApiError } from "@/lib/api/client"
-import type { AnimalRead, ImportacionRead, Paginated } from "@/types/api"
+import type { AnimalRead, ImportacionRead, PaginatedCursor } from "@/types/api"
 
 export interface AnimalFilters {
   caravana?: string
@@ -9,7 +9,7 @@ export interface AnimalFilters {
   potrero_id?: string
   estado?: string
   limit?: number
-  offset?: number
+  cursor?: string
 }
 
 export interface AnimalCreatePayload {
@@ -44,9 +44,9 @@ export function useAnimales(filters: AnimalFilters = {}) {
       if (filters.categoria) params.set("categoria", filters.categoria)
       if (filters.potrero_id) params.set("potrero_id", filters.potrero_id)
       if (filters.estado) params.set("estado", filters.estado)
-      params.set("limit", String(filters.limit ?? 50))
-      params.set("offset", String(filters.offset ?? 0))
-      const { data } = await api.get<Paginated<AnimalRead>>(`/api/v1/animales?${params}`)
+      if (filters.cursor) params.set("cursor", filters.cursor)
+      params.set("limit", String(filters.limit ?? 20))
+      const { data } = await api.get<PaginatedCursor<AnimalRead>>(`/api/v1/animales?${params}`)
       return data
     },
   })

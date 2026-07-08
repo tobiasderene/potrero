@@ -48,6 +48,14 @@ export interface Paginated<T> {
   offset: number
 }
 
+export interface PaginatedCursor<T> {
+  items: T[]
+  total: number
+  limit: number
+  next_cursor: string | null
+  has_next: boolean
+}
+
 export interface AnimalRead {
   id: string
   establecimiento_id: string
