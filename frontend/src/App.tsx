@@ -9,6 +9,8 @@ import { AppLayout } from "@/components/layout/AppLayout"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
 import { PotrerosPage } from "@/features/potreros/PotrerosPage"
 import { CategoriasPage } from "@/features/categorias/CategoriasPage"
+import { AnimalesPage } from "@/features/animales/AnimalesPage"
+import { AnimalFichaPage } from "@/features/animales/AnimalFichaPage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +34,8 @@ export default function App() {
                   <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/potreros" element={<PotrerosPage />} />
                   <Route path="/categorias" element={<CategoriasPage />} />
+                  <Route path="/animales" element={<AnimalesPage />} />
+                  <Route path="/animales/:id" element={<AnimalFichaPage />} />
                 </Route>
               </Route>
             </Route>

@@ -47,3 +47,42 @@ export interface Paginated<T> {
   limit: number
   offset: number
 }
+
+export interface AnimalRead {
+  id: string
+  establecimiento_id: string
+  caravana_senacsa: string | null
+  numero_campo: string | null
+  sexo: string
+  tipo_origen: string
+  raza: string | null
+  fecha_nacimiento: string | null
+  fecha_nacimiento_estimada: boolean
+  establecimiento_origen: string | null
+  estado: string
+  fecha_egreso: string | null
+  tipo_egreso: string | null
+  lote_actual_id: string | null
+  potrero_actual_id: string | null
+  categoria_actual: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ErrorFila {
+  fila: number
+  datos: Record<string, string>
+  errores: string[]
+}
+
+export interface ImportacionRead {
+  id: string
+  nombre_archivo: string
+  total_filas: number | null
+  filas_exitosas: number | null
+  filas_con_error: number | null
+  estado: string
+  reporte_errores: ErrorFila[] | null
+  created_at: string
+  completado_at: string | null
+}
