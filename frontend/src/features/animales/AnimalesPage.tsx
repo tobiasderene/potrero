@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Plus, Upload, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import {
@@ -65,6 +65,12 @@ const columns: ColumnDef<AnimalRead>[] = [
 ]
 
 export function AnimalesPage() {
+  const renderCount = useRef(0)
+  renderCount.current++
+  if (renderCount.current > 50) {
+    throw new Error(`AnimalesPage renderizó ${renderCount.current} veces seguidas — hay un loop`)
+  }
+
   const navigate = useNavigate()
   const [filters, setFilters] = useState<AnimalFilters>({ estado: "activo", limit: 20 })
   const [searchTipo, setSearchTipo] = useState<"caravana" | "numero_campo">("caravana")
@@ -89,7 +95,6 @@ export function AnimalesPage() {
   }
 
   const setFilter = (key: keyof AnimalFilters, value: string | undefined) => {
-    debugger
     setFilters(f => ({ ...f, [key]: value }))
     resetCursor()
   }
