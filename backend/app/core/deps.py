@@ -59,18 +59,19 @@ async def get_db(
         {"claims": claims, "sub": str(user_id)},
     )
 
-    # DEBUG temporal — solo lee current_setting, no toca auth.uid() para
-    # no repetir el permission-denied. Sacar una vez resuelto el 500.
+    # DEBUG temporal — llama a current_uid() (el wrapper que usan las
+    # policies) tal como lo ve potrero_app en esta misma conexión.
     diag = await db.execute(
         text(
             "SELECT current_setting('request.jwt.claim.sub', true), "
-            "current_setting('request.jwt.claims', true), current_user"
+            "current_setting('request.jwt.claims', true), current_user, "
+            "current_uid()"
         )
     )
     row = diag.first()
     print(
         f"RLS debug: claim.sub={row[0]!r} claims={row[1]!r} "
-        f"current_user={row[2]!r} expected={user_id}",
+        f"current_user={row[2]!r} current_uid()={row[3]!r} expected={user_id}",
         flush=True,
     )
 
