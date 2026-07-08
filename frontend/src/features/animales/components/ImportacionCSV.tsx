@@ -4,26 +4,125 @@ import { Alert } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { Download, Upload, CheckCircle, XCircle } from "lucide-react"
 import { useImportarCSV, getApiError } from "../hooks/useAnimales"
-import type { ImportacionRead } from "@/types/api"
+import type { ErrorFila, ImportacionRead } from "@/types/api"
+
+const CHUNK_SIZE = 200  // filas por lote; ~5-8s por lote en Cloud Run
 
 interface Props {
   onClose: () => void
 }
 
+interface ProgresoChunk {
+  actual: number
+  total: number
+  filasProcesadas: number
+  filasTotal: number
+}
+
+function csvAChunks(texto: string): { chunks: string[]; totalFilas: number } {
+  const lineas = texto.split("\n")
+  const header = lineas[0]
+  const datos = lineas.slice(1).filter(l => l.trim() !== "")
+  const chunks: string[] = []
+  for (let i = 0; i < datos.length; i += CHUNK_SIZE) {
+    chunks.push([header, ...datos.slice(i, i + CHUNK_SIZE)].join("\n"))
+  }
+  return { chunks, totalFilas: datos.length }
+}
+
 export function ImportacionCSV({ onClose }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [resultado, setResultado] = useState<ImportacionRead | null>(null)
+  const [progreso, setProgreso] = useState<ProgresoChunk | null>(null)
+  const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
   const importar = useImportarCSV()
+
+  const procesarArchivo = async (file: File) => {
+    setErrorGeneral(null)
+    setResultado(null)
+
+    const texto = await file.text()
+    const { chunks, totalFilas } = csvAChunks(texto)
+
+    if (chunks.length === 0) {
+      setErrorGeneral("El archivo está vacío o no tiene datos.")
+      return
+    }
+
+    // Archivo chico: subida directa sin progreso por chunks
+    if (chunks.length === 1) {
+      try {
+        const data = await importar.mutateAsync(file)
+        setResultado(data)
+      } catch (e) {
+        // error mostrado via importar.error
+      }
+      return
+    }
+
+    // Archivo grande: subir en chunks y mostrar progreso real
+    let filasProcesadas = 0
+    let filasExitosas = 0
+    let erroresAcumulados: ErrorFila[] = []
+    let estado = "completado"
+
+    for (let i = 0; i < chunks.length; i++) {
+      setProgreso({
+        actual: i + 1,
+        total: chunks.length,
+        filasProcesadas,
+        filasTotal: totalFilas,
+      })
+
+      const chunkFile = new File(
+        [chunks[i]],
+        `${file.name}_parte${i + 1}.csv`,
+        { type: "text/csv" }
+      )
+
+      try {
+        const res = await importar.mutateAsync(chunkFile)
+        filasProcesadas += res.total_filas ?? 0
+        filasExitosas += res.filas_exitosas ?? 0
+
+        if (res.reporte_errores) {
+          // Ajustar números de fila al contexto del archivo original
+          // El backend reporta fila 2..N (fila 1 = header). El chunk i
+          // empieza en la fila original 2 + i*CHUNK_SIZE.
+          const offset = i * CHUNK_SIZE
+          erroresAcumulados.push(
+            ...res.reporte_errores.map(e => ({ ...e, fila: e.fila + offset }))
+          )
+        }
+      } catch (e) {
+        setErrorGeneral(getApiError(e as Error))
+        setProgreso(null)
+        return
+      }
+    }
+
+    if (erroresAcumulados.length > 0) {
+      estado = filasExitosas > 0 ? "completado_con_errores" : "fallido"
+    }
+
+    setProgreso(null)
+    setResultado({
+      id: "combined",
+      nombre_archivo: file.name,
+      total_filas: totalFilas,
+      filas_exitosas: filasExitosas,
+      filas_con_error: erroresAcumulados.length,
+      estado,
+      reporte_errores: erroresAcumulados.length > 0 ? erroresAcumulados : null,
+      created_at: new Date().toISOString(),
+      completado_at: new Date().toISOString(),
+    })
+  }
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    try {
-      const data = await importar.mutateAsync(file)
-      setResultado(data)
-    } catch {
-      // error shown below
-    }
+    await procesarArchivo(file)
     e.target.value = ""
   }
 
@@ -45,14 +144,17 @@ export function ImportacionCSV({ onClose }: Props) {
     URL.revokeObjectURL(url)
   }
 
+  // ── Vista: resultado ──────────────────────────────────────────────────────
   if (resultado) {
     const ok = resultado.estado === "completado"
     const parcial = resultado.estado === "completado_con_errores"
-
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          {ok ? <CheckCircle className="h-6 w-6 text-green-600" /> : <XCircle className="h-6 w-6 text-amber-500" />}
+          {ok
+            ? <CheckCircle className="h-6 w-6 text-green-600" />
+            : <XCircle className="h-6 w-6 text-amber-500" />
+          }
           <div>
             <p className="font-medium">
               {ok ? "Importación completada" : parcial ? "Importación completada con errores" : "Importación fallida"}
@@ -98,6 +200,26 @@ export function ImportacionCSV({ onClose }: Props) {
     )
   }
 
+  // ── Vista: progreso en chunks ─────────────────────────────────────────────
+  if (progreso) {
+    const pct = Math.round(((progreso.actual - 1) / progreso.total) * 100)
+    return (
+      <div className="space-y-4 py-2">
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-sm">
+            <span className="font-medium">Procesando lote {progreso.actual} de {progreso.total}</span>
+            <span className="text-muted-foreground">{pct}%</span>
+          </div>
+          <Progress value={pct} />
+          <p className="text-xs text-muted-foreground">
+            {progreso.filasProcesadas} de {progreso.filasTotal} animales procesados — no cerrés esta ventana
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Vista: upload inicial ─────────────────────────────────────────────────
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
@@ -109,7 +231,7 @@ export function ImportacionCSV({ onClose }: Props) {
         Descargar plantilla CSV
       </Button>
 
-      {importar.isPending ? (
+      {importar.isPending && !progreso ? (
         <div className="space-y-2">
           <p className="text-sm text-center text-muted-foreground">Procesando...</p>
           <Progress value={undefined} className="animate-pulse" />
@@ -126,8 +248,8 @@ export function ImportacionCSV({ onClose }: Props) {
         </div>
       )}
 
-      {importar.error && (
-        <Alert variant="destructive">{getApiError(importar.error)}</Alert>
+      {(errorGeneral || importar.error) && (
+        <Alert variant="destructive">{errorGeneral ?? getApiError(importar.error!)}</Alert>
       )}
 
       <div className="flex justify-end">
