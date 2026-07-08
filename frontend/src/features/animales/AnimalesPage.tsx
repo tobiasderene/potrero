@@ -20,6 +20,9 @@ import type { AnimalRead } from "@/types/api"
 
 const CATEGORIAS = ["ternero", "ternera", "novillo", "vaquillona", "vaca", "vaca_con_cria", "toro", "buey"]
 
+// Sentinel para representar "sin filtro" en los Select (Radix no permite value="")
+const ALL = "__todos__"
+
 const columns: ColumnDef<AnimalRead>[] = [
   {
     accessorKey: "caravana_senacsa",
@@ -166,26 +169,35 @@ export function AnimalesPage() {
             />
           </div>
         </div>
-        <Select value={filters.categoria ?? ""} onValueChange={(v: string) => setFilter("categoria", v || undefined)}>
+        <Select
+          value={filters.categoria ?? ALL}
+          onValueChange={(v: string) => setFilter("categoria", v === ALL ? undefined : v)}
+        >
           <SelectTrigger className="w-44"><SelectValue placeholder="Categoría" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas</SelectItem>
+            <SelectItem value={ALL}>Todas</SelectItem>
             {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c.replace(/_/g, " ")}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.potrero_id ?? ""} onValueChange={(v: string) => setFilter("potrero_id", v || undefined)}>
+        <Select
+          value={filters.potrero_id ?? ALL}
+          onValueChange={(v: string) => setFilter("potrero_id", v === ALL ? undefined : v)}
+        >
           <SelectTrigger className="w-44"><SelectValue placeholder="Potrero" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value={ALL}>Todos</SelectItem>
             {potreros?.items.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filters.estado ?? "activo"} onValueChange={(v: string) => setFilter("estado", v || undefined)}>
+        <Select
+          value={filters.estado ?? "activo"}
+          onValueChange={(v: string) => setFilter("estado", v === ALL ? undefined : v)}
+        >
           <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="activo">Activos</SelectItem>
             <SelectItem value="egresado">Egresados</SelectItem>
-            <SelectItem value="">Todos</SelectItem>
+            <SelectItem value={ALL}>Todos</SelectItem>
           </SelectContent>
         </Select>
       </div>
