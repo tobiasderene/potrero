@@ -47,8 +47,13 @@ async def get_db(
     """
     claims = json.dumps({"sub": str(user_id), "role": "authenticated"})
     await db.execute(
-        text("SELECT set_config('request.jwt.claims', :claims, false)"),
-        {"claims": claims},
+        text(
+            "SELECT "
+            "set_config('request.jwt.claims', :claims, false), "
+            "set_config('request.jwt.claim.sub', :sub, false), "
+            "set_config('request.jwt.claim.role', 'authenticated', false)"
+        ),
+        {"claims": claims, "sub": str(user_id)},
     )
     return db
 
