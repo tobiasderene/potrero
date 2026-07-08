@@ -9,19 +9,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AnimalForm } from "./components/AnimalForm"
 import { ImportacionCSV } from "./components/ImportacionCSV"
 import { useAnimales, type AnimalFilters } from "./hooks/useAnimales"
+import { usePotreros } from "@/features/potreros/hooks/usePotreros"
 
 const CATEGORIAS = ["ternero", "ternera", "novillo", "vaquillona", "vaca", "vaca_con_cria", "toro", "buey"]
 
 export function AnimalesPage() {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<AnimalFilters>({ estado: "activo", limit: 50, offset: 0 })
+  const [searchTipo, setSearchTipo] = useState<"caravana" | "numero_campo">("caravana")
   const [search, setSearch] = useState("")
   const [showForm, setShowForm] = useState(false)
   const [showCSV, setShowCSV] = useState(false)
 
+  const { data: potreros } = usePotreros("activo")
+
   const { data, isLoading } = useAnimales({
     ...filters,
-    caravana: search || undefined,
+    caravana: searchTipo === "caravana" ? (search || undefined) : undefined,
+    numero_campo: searchTipo === "numero_campo" ? (search || undefined) : undefined,
   })
 
   const setFilter = (key: keyof AnimalFilters, value: string | undefined) =>
@@ -48,20 +53,38 @@ export function AnimalesPage() {
 
       {/* Filtros */}
       <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por caravana..."
-            className="pl-8"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+        <div className="flex flex-1 min-w-56">
+          <Select value={searchTipo} onValueChange={(v: string) => { setSearchTipo(v as "caravana" | "numero_campo"); setSearch("") }}>
+            <SelectTrigger className="w-36 rounded-r-none border-r-0 shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="caravana">Caravana</SelectItem>
+              <SelectItem value="numero_campo">N° campo</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={searchTipo === "caravana" ? "AR001..." : "101..."}
+              className="pl-8 rounded-l-none"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
         </div>
         <Select value={filters.categoria ?? ""} onValueChange={(v: string) => setFilter("categoria", v || undefined)}>
           <SelectTrigger className="w-44"><SelectValue placeholder="Categoría" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todas</SelectItem>
-            {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c.replace("_", " ")}</SelectItem>)}
+            {CATEGORIAS.map(c => <SelectItem key={c} value={c}>{c.replace(/_/g, " ")}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filters.potrero_id ?? ""} onValueChange={(v: string) => setFilter("potrero_id", v || undefined)}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Potrero" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos</SelectItem>
+            {potreros?.items.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.estado ?? "activo"} onValueChange={(v: string) => setFilter("estado", v || undefined)}>

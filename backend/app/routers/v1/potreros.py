@@ -1,6 +1,7 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_establecimiento_id, get_db
@@ -37,7 +38,11 @@ async def crear_potrero(
     db: AsyncSession = Depends(get_db),
 ) -> PotreroRead:
     potrero = await crud.create(db, establecimiento_id, data)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Ya existe un potrero con ese nombre")
     return PotreroRead.model_validate(potrero)
 
 
@@ -64,5 +69,9 @@ async def actualizar_potrero(
     if not potrero:
         raise HTTPException(status_code=404, detail="Potrero no encontrado")
     potrero = await crud.update(db, potrero, data)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="Ya existe un potrero con ese nombre")
     return PotreroRead.model_validate(potrero)
