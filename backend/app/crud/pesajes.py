@@ -40,7 +40,7 @@ async def calcular_gdp_db(
 ) -> tuple[Decimal | None, Decimal | None, int | None]:
     """Llama a la SQL function calcular_gdp(). Devuelve (gdp_g_dia, peso_anterior, dias_intervalo)."""
     result = await db.execute(
-        text("SELECT gdp_g_dia, peso_anterior, dias_intervalo FROM calcular_gdp(:aid::UUID)"),
+        text("SELECT gdp_g_dia, peso_anterior, dias_intervalo FROM calcular_gdp(CAST(:aid AS UUID))"),
         {"aid": str(animal_id)},
     )
     row = result.one_or_none()

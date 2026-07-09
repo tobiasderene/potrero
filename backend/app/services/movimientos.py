@@ -74,7 +74,7 @@ async def _check_carencia_activa(
     result = await db.execute(
         text(
             "SELECT animal_id, fecha_fin_carencia, medicamento "
-            "FROM animales_con_carencia_activa(:ids::UUID[])"
+            "FROM animales_con_carencia_activa(CAST(:ids AS UUID[]))"
         ),
         {"ids": array_literal},
     )
