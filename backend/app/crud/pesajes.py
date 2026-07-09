@@ -91,6 +91,37 @@ async def get_pesajes_lote(
     return list(result.all())
 
 
+async def calcular_gdp_lote_estimado(
+    db: AsyncSession,
+    lote_id: uuid.UUID,
+) -> tuple[Decimal | None, int | None]:
+    """Compara los 2 últimos pesajes lote_estimado del lote. Devuelve (gdp_g_dia, dias_intervalo)."""
+    result = await db.execute(
+        select(EventoPesaje.peso_kg, Evento.fecha_evento)
+        .join(Evento, Evento.id == EventoPesaje.evento_id)
+        .where(
+            EventoPesaje.lote_id == lote_id,
+            EventoPesaje.tipo == "lote_estimado",
+            Evento.anulado.is_(False),
+        )
+        .order_by(Evento.fecha_evento.desc())
+        .limit(2)
+    )
+    rows = result.all()
+    if len(rows) < 2:
+        return None, None
+    peso_actual, fecha_actual = rows[0]
+    peso_anterior, fecha_anterior = rows[1]
+    dias = (fecha_actual - fecha_anterior).days
+    if dias <= 0:
+        return None, None
+    gdp = round(
+        (Decimal(str(peso_actual)) - Decimal(str(peso_anterior))) / Decimal(dias) * 1000,
+        2,
+    )
+    return gdp, dias
+
+
 async def get_animales_lote_activos(
     db: AsyncSession,
     lote_id: uuid.UUID,

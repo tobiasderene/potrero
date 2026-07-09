@@ -108,6 +108,13 @@ async def registrar_pesaje_lote(
         cantidad_muestra=data.cantidad_muestra,
     )
 
+    await db.flush()
+
+    gdp, dias = await crud_p.calcular_gdp_lote_estimado(db, data.lote_id)
+    if gdp is not None:
+        ep.gdp_g_dia = gdp
+        ep.dias_intervalo = dias
+
     await db.commit()
 
     return PesajeRead(
@@ -119,8 +126,8 @@ async def registrar_pesaje_lote(
         lote_id=data.lote_id,
         peso_kg=ep.peso_kg,
         cantidad_muestra=ep.cantidad_muestra,
-        gdp_g_dia=None,
-        dias_intervalo=None,
+        gdp_g_dia=ep.gdp_g_dia,
+        dias_intervalo=ep.dias_intervalo,
         observaciones=evento.observaciones,
     )
 
