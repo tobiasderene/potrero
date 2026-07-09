@@ -11,13 +11,23 @@ interface Props {
 export function AnimalSearchSelect({ onSelect }: Props) {
   const [query, setQuery] = useState("")
 
-  const { data } = useAnimales(
-    query.length >= 2
-      ? { caravana: query, estado: "activo", limit: 8 }
-      : { estado: "activo", limit: 0 }
+  const noQuery = { estado: "activo", limit: 0 }
+  const { data: byCaravana } = useAnimales(
+    query.length >= 2 ? { caravana: query, estado: "activo", limit: 8 } : noQuery
+  )
+  const { data: byCampo } = useAnimales(
+    query.length >= 2 ? { numero_campo: query, estado: "activo", limit: 8 } : noQuery
   )
 
-  const resultados = query.length >= 2 ? (data?.items ?? []) : []
+  const resultados = (() => {
+    if (query.length < 2) return []
+    const seen = new Set<string>()
+    return [...(byCaravana?.items ?? []), ...(byCampo?.items ?? [])].filter((a) => {
+      if (seen.has(a.id)) return false
+      seen.add(a.id)
+      return true
+    })
+  })()
 
   return (
     <div className="space-y-2">
@@ -25,7 +35,7 @@ export function AnimalSearchSelect({ onSelect }: Props) {
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           className="pl-8"
-          placeholder="Buscar por caravana (mín. 2 caracteres)..."
+          placeholder="Buscar por caravana o n° campo (mín. 2 caracteres)..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus

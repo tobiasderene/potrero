@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -6,7 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { getApiError, useRegistrarVacunacion } from "../hooks/useSanidad"
-import type { LoteRead, VacunacionRead } from "@/types/api"
+import { AnimalSearchSelect } from "@/features/pesajes/components/AnimalSearchSelect"
+import type { AnimalRead, LoteRead, VacunacionRead } from "@/types/api"
 
 const VIAS = ["subcutanea", "intramuscular", "intravenosa", "oral", "topica"] as const
 
@@ -21,7 +23,7 @@ export function VacunacionForm({ lotes, onSuccess, onCancel }: Props) {
   const [fechaEvento, setFechaEvento] = useState(today)
   const [modo, setModo] = useState<"lote" | "individual">("lote")
   const [loteId, setLoteId] = useState("")
-  const [animalIds, setAnimalIds] = useState("")
+  const [animalesSeleccionados, setAnimalesSeleccionados] = useState<AnimalRead[]>([])
   const [biologico, setBiologico] = useState("")
   const [laboratorio, setLaboratorio] = useState("")
   const [loteBiologico, setLoteBiologico] = useState("")
@@ -57,9 +59,8 @@ export function VacunacionForm({ lotes, onSuccess, onCancel }: Props) {
       if (!loteId) { setError("Seleccione un lote"); return }
       payload.lote_id = loteId
     } else {
-      const ids = animalIds.split(",").map((s) => s.trim()).filter(Boolean)
-      if (ids.length === 0) { setError("Ingrese al menos un ID de animal"); return }
-      payload.animal_ids = ids
+      if (animalesSeleccionados.length === 0) { setError("Seleccione al menos un animal"); return }
+      payload.animal_ids = animalesSeleccionados.map((a) => a.id)
     }
 
     try {
@@ -108,13 +109,33 @@ export function VacunacionForm({ lotes, onSuccess, onCancel }: Props) {
           </Select>
         </div>
       ) : (
-        <div className="space-y-1.5">
-          <Label>IDs de animales (separados por coma)</Label>
-          <Input
-            placeholder="uuid1, uuid2, ..."
-            value={animalIds}
-            onChange={(e) => setAnimalIds(e.target.value)}
+        <div className="space-y-2">
+          <AnimalSearchSelect
+            onSelect={(a) => {
+              if (!animalesSeleccionados.find((s) => s.id === a.id)) {
+                setAnimalesSeleccionados((prev) => [...prev, a])
+              }
+            }}
           />
+          {animalesSeleccionados.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {animalesSeleccionados.map((a) => (
+                <span
+                  key={a.id}
+                  className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-mono"
+                >
+                  {a.caravana_senacsa ?? a.numero_campo ?? "Sin ID"}
+                  <button
+                    type="button"
+                    onClick={() => setAnimalesSeleccionados((prev) => prev.filter((s) => s.id !== a.id))}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
