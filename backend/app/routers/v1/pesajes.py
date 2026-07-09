@@ -84,6 +84,32 @@ async def anular_pesaje(
     await svc.anular_pesaje(db, establecimiento_id, evento_id)
 
 
+@router.get("/lote/{lote_id}", response_model=list[PesajeRead])
+async def historial_pesajes_lote(
+    lote_id: uuid.UUID,
+    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
+    db: AsyncSession = Depends(get_db),
+) -> list[PesajeRead]:
+    from app.crud import pesajes as crud_p
+    rows = await crud_p.get_pesajes_lote(db, lote_id, establecimiento_id)
+    return [
+        PesajeRead(
+            evento_id=ev.id,
+            fecha_evento=ev.fecha_evento,
+            fecha_registro=ev.fecha_registro,
+            tipo=ep.tipo,
+            animal_id=ep.animal_id,
+            lote_id=ep.lote_id,
+            peso_kg=ep.peso_kg,
+            cantidad_muestra=ep.cantidad_muestra,
+            gdp_g_dia=ep.gdp_g_dia,
+            dias_intervalo=ep.dias_intervalo,
+            observaciones=ev.observaciones,
+        )
+        for ev, ep in rows
+    ]
+
+
 @router.get("/animal/{animal_id}", response_model=list[PesajeRead])
 async def historial_pesajes_animal(
     animal_id: uuid.UUID,

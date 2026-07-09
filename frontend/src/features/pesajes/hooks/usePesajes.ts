@@ -56,6 +56,30 @@ export function usePesajesAnimal(animalId: string) {
   })
 }
 
+export function usePesajesLote(loteId: string) {
+  return useQuery({
+    queryKey: ["pesajes", "lote", loteId],
+    queryFn: async () => {
+      const { data } = await api.get<PesajeRead[]>(`/api/v1/pesajes/lote/${loteId}`)
+      return data
+    },
+    enabled: !!loteId,
+  })
+}
+
+export function useAnularPesaje() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ eventoId }: { eventoId: string; loteId: string }) => {
+      await api.patch(`/api/v1/pesajes/${eventoId}/anular`)
+    },
+    onSuccess: (_, v) => {
+      qc.invalidateQueries({ queryKey: ["pesajes", "lote", v.loteId] })
+      qc.invalidateQueries({ queryKey: ["gdp", "lote", v.loteId] })
+    },
+  })
+}
+
 export function useGdpAnimal(animalId: string) {
   return useQuery({
     queryKey: ["gdp", "animal", animalId],
