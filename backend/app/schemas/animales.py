@@ -54,6 +54,7 @@ class AnimalRead(BaseModel):
     lote_actual_id: uuid.UUID | None
     lote_actual_nombre: str | None = None
     potrero_actual_id: uuid.UUID | None
+    potrero_actual_nombre: str | None = None
     categoria_actual: str | None = None
     created_at: datetime
     updated_at: datetime

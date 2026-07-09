@@ -73,6 +73,7 @@ export interface AnimalRead {
   lote_actual_id: string | null
   lote_actual_nombre: string | null
   potrero_actual_id: string | null
+  potrero_actual_nombre: string | null
   categoria_actual: string | null
   created_at: string
   updated_at: string

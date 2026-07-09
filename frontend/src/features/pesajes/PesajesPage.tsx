@@ -9,14 +9,15 @@ import { GdpLoteCard } from "./components/GdpLoteCard"
 import { PesajesHistorial } from "./components/PesajesHistorial"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { usePesajesLote, useAnularPesaje } from "./hooks/usePesajes"
+import { AnimalSearchSelect } from "./components/AnimalSearchSelect"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import type { AnimalRead } from "@/types/api"
 
 export function PesajesPage() {
   const [showIndividual, setShowIndividual] = useState(false)
   const [showLote, setShowLote] = useState(false)
-  const [animalIdBusqueda, setAnimalIdBusqueda] = useState("")
+  const [animalSeleccionado, setAnimalSeleccionado] = useState<AnimalRead | null>(null)
   const [loteGdpId, setLoteGdpId] = useState("")
   const [lastResult, setLastResult] = useState<string | null>(null)
 
@@ -92,31 +93,47 @@ export function PesajesPage() {
       </Tabs>
 
       {/* Dialog pesaje individual */}
-      <Dialog open={showIndividual} onOpenChange={setShowIndividual}>
+      <Dialog open={showIndividual} onOpenChange={(open) => { setShowIndividual(open); if (!open) setAnimalSeleccionado(null) }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Pesaje individual</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>ID del animal</Label>
-              <Input
-                placeholder="UUID del animal"
-                value={animalIdBusqueda}
-                onChange={(e) => setAnimalIdBusqueda(e.target.value)}
-              />
-            </div>
-            {animalIdBusqueda && (
-              <PesajeIndividualForm
-                animalId={animalIdBusqueda}
-                onSuccess={(r) => {
-                  const gdp = r.gdp_g_dia ? `GDP: ${Number(r.gdp_g_dia).toFixed(0)} g/día` : "GDP: sin dato previo"
-                  setLastResult(`Pesaje registrado · Peso: ${r.peso_kg} kg · ${gdp}`)
-                  setShowIndividual(false)
-                  setAnimalIdBusqueda("")
-                }}
-                onCancel={() => { setShowIndividual(false); setAnimalIdBusqueda("") }}
-              />
+            {!animalSeleccionado ? (
+              <AnimalSearchSelect onSelect={setAnimalSeleccionado} />
+            ) : (
+              <>
+                <div className="rounded-md bg-muted px-3 py-2 flex items-center justify-between text-sm">
+                  <div>
+                    <span className="font-mono font-medium">
+                      {animalSeleccionado.caravana_senacsa ?? animalSeleccionado.numero_campo}
+                    </span>
+                    <span className="text-muted-foreground ml-2 capitalize">
+                      {animalSeleccionado.categoria_actual?.replace(/_/g, " ") ?? ""}
+                    </span>
+                    {animalSeleccionado.lote_actual_nombre && (
+                      <span className="text-muted-foreground"> · {animalSeleccionado.lote_actual_nombre}</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                    onClick={() => setAnimalSeleccionado(null)}
+                  >
+                    cambiar
+                  </button>
+                </div>
+                <PesajeIndividualForm
+                  animalId={animalSeleccionado.id}
+                  onSuccess={(r) => {
+                    const gdp = r.gdp_g_dia ? `GDP: ${Number(r.gdp_g_dia).toFixed(0)} g/día` : "GDP: sin dato previo"
+                    setLastResult(`Pesaje registrado · Peso: ${r.peso_kg} kg · ${gdp}`)
+                    setShowIndividual(false)
+                    setAnimalSeleccionado(null)
+                  }}
+                  onCancel={() => { setShowIndividual(false); setAnimalSeleccionado(null) }}
+                />
+              </>
             )}
           </div>
         </DialogContent>

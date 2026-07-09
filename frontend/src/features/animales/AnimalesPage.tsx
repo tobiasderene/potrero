@@ -58,6 +58,13 @@ const columns: ColumnDef<AnimalRead>[] = [
     cell: ({ row }) => row.original.raza ?? "—",
   },
   {
+    id: "potrero",
+    header: "Potrero",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.potrero_actual_nombre ?? "—"}</span>
+    ),
+  },
+  {
     id: "lote",
     header: "Lote",
     cell: ({ row }) => (

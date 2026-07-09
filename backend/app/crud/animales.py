@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.animales import Animal, AnimalCategoria
 from app.models.lotes import Lote
+from app.models.potreros import Potrero
 from app.schemas.animales import AnimalCreate, AnimalUpdate
 
 
@@ -112,6 +113,18 @@ async def get_lotes_nombres(
         return {}
     result = await db.execute(
         select(Lote.id, Lote.nombre).where(Lote.id.in_(lote_ids))
+    )
+    return {row.id: row.nombre for row in result}
+
+
+async def get_potreros_nombres(
+    db: AsyncSession,
+    potrero_ids: list[uuid.UUID],
+) -> dict[uuid.UUID, str]:
+    if not potrero_ids:
+        return {}
+    result = await db.execute(
+        select(Potrero.id, Potrero.nombre).where(Potrero.id.in_(potrero_ids))
     )
     return {row.id: row.nombre for row in result}
 
