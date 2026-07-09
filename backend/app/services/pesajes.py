@@ -180,6 +180,18 @@ async def calcular_gdp_lote(
             gdp_values.append(gdp)
 
     if not gdp_values:
+        # Fallback: pesajes lote_estimado cuando no hay individuales
+        gdp_est, _ = await crud_p.calcular_gdp_lote_estimado(db, lote_id)
+        if gdp_est is not None:
+            return GdpLoteRead(
+                lote_id=lote_id,
+                gdp_promedio_g_dia=gdp_est,
+                gdp_minimo_g_dia=None,
+                gdp_maximo_g_dia=None,
+                total_animales_con_gdp=0,
+                total_animales_lote=total_animales,
+                estado="parcial",
+            )
         return GdpLoteRead(
             lote_id=lote_id,
             gdp_promedio_g_dia=None,
