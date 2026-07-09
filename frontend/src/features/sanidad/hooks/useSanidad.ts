@@ -55,6 +55,8 @@ export function useRegistrarVacunacion() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sanidad"] })
       qc.invalidateQueries({ queryKey: ["calendario"] })
+      qc.invalidateQueries({ queryKey: ["alertas"] })
+      qc.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })
 }
@@ -69,6 +71,8 @@ export function useRegistrarTratamiento() {
     onSuccess: (_, v) => {
       qc.invalidateQueries({ queryKey: ["sanidad", "tratamientos", v.animal_id] })
       qc.invalidateQueries({ queryKey: ["calendario"] })
+      qc.invalidateQueries({ queryKey: ["alertas"] })
+      qc.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })
 }
