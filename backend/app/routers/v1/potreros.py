@@ -48,6 +48,16 @@ async def crear_potrero(
     return PotreroRead.model_validate(potrero)
 
 
+@router.get("/cargas", response_model=list[CargaAnimalRead])
+async def cargas_animales(
+    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
+    db: AsyncSession = Depends(get_db),
+) -> list[CargaAnimalRead]:
+    """IND-05/IND-06: carga animal y semáforo de ocupación para todos los potreros activos."""
+    items, _ = await crud.list_by_establecimiento(db, establecimiento_id, estado="activo", limit=100, offset=0)
+    return [await svc_potreros.calcular_carga(db, p) for p in items]
+
+
 @router.get("/{potrero_id}", response_model=PotreroRead)
 async def get_potrero(
     potrero_id: uuid.UUID,
@@ -58,16 +68,6 @@ async def get_potrero(
     if not potrero:
         raise HTTPException(status_code=404, detail="Potrero no encontrado")
     return PotreroRead.model_validate(potrero)
-
-
-@router.get("/cargas", response_model=list[CargaAnimalRead])
-async def cargas_animales(
-    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
-    db: AsyncSession = Depends(get_db),
-) -> list[CargaAnimalRead]:
-    """IND-05/IND-06: carga animal y semáforo de ocupación para todos los potreros activos."""
-    items, _ = await crud.list_by_establecimiento(db, establecimiento_id, estado="activo", limit=100, offset=0)
-    return [await svc_potreros.calcular_carga(db, p) for p in items]
 
 
 @router.get("/{potrero_id}/carga", response_model=CargaAnimalRead)
