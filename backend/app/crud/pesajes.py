@@ -95,17 +95,24 @@ async def calcular_gdp_lote_estimado(
     db: AsyncSession,
     lote_id: uuid.UUID,
 ) -> tuple[Decimal | None, int | None]:
-    """Compara los 2 últimos pesajes lote_estimado del lote. Devuelve (gdp_g_dia, dias_intervalo)."""
+    """Compara los 2 últimos pesajes lote_estimado del lote (1 por fecha). Devuelve (gdp_g_dia, dias_intervalo)."""
+    # DISTINCT ON fecha_evento para que varios pesajes del mismo día no rompan el cálculo.
     result = await db.execute(
-        select(EventoPesaje.peso_kg, Evento.fecha_evento)
-        .join(Evento, Evento.id == EventoPesaje.evento_id)
-        .where(
-            EventoPesaje.lote_id == lote_id,
-            EventoPesaje.tipo == "lote_estimado",
-            Evento.anulado.is_(False),
-        )
-        .order_by(Evento.fecha_evento.desc())
-        .limit(2)
+        text("""
+            SELECT peso_kg, fecha_evento
+            FROM (
+                SELECT DISTINCT ON (e.fecha_evento)
+                    ep.peso_kg, e.fecha_evento
+                FROM evento_pesajes ep
+                JOIN eventos e ON e.id = ep.evento_id
+                WHERE ep.lote_id = CAST(:lote_id AS UUID)
+                  AND ep.tipo = 'lote_estimado'
+                  AND e.anulado = FALSE
+                ORDER BY e.fecha_evento DESC, e.fecha_registro DESC
+            ) t
+            LIMIT 2
+        """),
+        {"lote_id": str(lote_id)},
     )
     rows = result.all()
     if len(rows) < 2:

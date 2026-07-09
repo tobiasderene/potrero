@@ -124,7 +124,7 @@ async def _get_carga_establecimiento(
 async def _get_gdp_rodeo(
     db: AsyncSession, est: str, total_activos: int
 ) -> GdpRodeoRead:
-    """Single SQL query — evita N+1 sobre los animales del establecimiento."""
+    """GDP del rodeo. Prioriza pesajes individuales; si no hay, usa lote_estimado como parcial."""
     result = await db.execute(
         text("""
             WITH ranked AS (
@@ -174,24 +174,90 @@ async def _get_gdp_rodeo(
     row = result.one()
     total_con_gdp = int(row.total_con_gdp or 0)
 
-    gdp_promedio = Decimal(str(row.gdp_promedio)) if row.gdp_promedio is not None else None
-    gdp_minimo = Decimal(str(row.gdp_minimo)) if row.gdp_minimo is not None else None
-    gdp_maximo = Decimal(str(row.gdp_maximo)) if row.gdp_maximo is not None else None
+    if total_con_gdp > 0:
+        gdp_promedio = Decimal(str(row.gdp_promedio)) if row.gdp_promedio is not None else None
+        gdp_minimo = Decimal(str(row.gdp_minimo)) if row.gdp_minimo is not None else None
+        gdp_maximo = Decimal(str(row.gdp_maximo)) if row.gdp_maximo is not None else None
+        estado = "completo" if total_con_gdp >= total_activos else "parcial"
+        return GdpRodeoRead(
+            gdp_promedio_g_dia=gdp_promedio,
+            gdp_minimo_g_dia=gdp_minimo,
+            gdp_maximo_g_dia=gdp_maximo,
+            total_animales_con_gdp=total_con_gdp,
+            total_animales_activos=total_activos,
+            estado=estado,  # type: ignore[arg-type]
+        )
 
-    if total_con_gdp == 0:
-        estado = "sin_dato_suficiente"
-    elif total_con_gdp < total_activos:
-        estado = "parcial"
-    else:
-        estado = "completo"
+    # Fallback: pesajes lote_estimado cuando no hay pesajes individuales.
+    # DISTINCT ON fecha_evento por lote para evitar que múltiples pesajes del mismo día
+    # rompan el cálculo de días.
+    result2 = await db.execute(
+        text("""
+            WITH lote_fechas AS (
+                SELECT DISTINCT ON (ep.lote_id, e.fecha_evento)
+                    ep.lote_id,
+                    ep.peso_kg,
+                    e.fecha_evento
+                FROM evento_pesajes ep
+                JOIN eventos e ON e.id = ep.evento_id
+                JOIN lotes l ON l.id = ep.lote_id
+                WHERE l.establecimiento_id = :est_id
+                  AND ep.tipo = 'lote_estimado'
+                  AND e.anulado = FALSE
+                ORDER BY ep.lote_id, e.fecha_evento DESC, e.fecha_registro DESC
+            ),
+            lote_ranked AS (
+                SELECT *,
+                    ROW_NUMBER() OVER (PARTITION BY lote_id ORDER BY fecha_evento DESC) AS rn
+                FROM lote_fechas
+            ),
+            lote_gdp AS (
+                SELECT
+                    curr.lote_id,
+                    CASE
+                        WHEN prev.peso_kg IS NOT NULL
+                         AND (curr.fecha_evento - prev.fecha_evento) > 0
+                        THEN ROUND(
+                            (curr.peso_kg - prev.peso_kg)::NUMERIC /
+                            (curr.fecha_evento - prev.fecha_evento)::NUMERIC * 1000,
+                            2
+                        )
+                        ELSE NULL
+                    END AS gdp_g_dia
+                FROM lote_ranked curr
+                LEFT JOIN lote_ranked prev
+                    ON prev.lote_id = curr.lote_id AND prev.rn = 2
+                WHERE curr.rn = 1
+            )
+            SELECT
+                COUNT(*) FILTER (WHERE gdp_g_dia IS NOT NULL)::INTEGER AS total_con_gdp,
+                ROUND(AVG(gdp_g_dia) FILTER (WHERE gdp_g_dia IS NOT NULL), 2) AS gdp_promedio,
+                ROUND(MIN(gdp_g_dia) FILTER (WHERE gdp_g_dia IS NOT NULL), 2) AS gdp_minimo,
+                ROUND(MAX(gdp_g_dia) FILTER (WHERE gdp_g_dia IS NOT NULL), 2) AS gdp_maximo
+            FROM lote_gdp
+        """),
+        {"est_id": est},
+    )
+    row2 = result2.one()
+    total_lotes_gdp = int(row2.total_con_gdp or 0)
+
+    if total_lotes_gdp == 0:
+        return GdpRodeoRead(
+            gdp_promedio_g_dia=None,
+            gdp_minimo_g_dia=None,
+            gdp_maximo_g_dia=None,
+            total_animales_con_gdp=0,
+            total_animales_activos=total_activos,
+            estado="sin_dato_suficiente",  # type: ignore[arg-type]
+        )
 
     return GdpRodeoRead(
-        gdp_promedio_g_dia=gdp_promedio,
-        gdp_minimo_g_dia=gdp_minimo,
-        gdp_maximo_g_dia=gdp_maximo,
-        total_animales_con_gdp=total_con_gdp,
+        gdp_promedio_g_dia=Decimal(str(row2.gdp_promedio)) if row2.gdp_promedio is not None else None,
+        gdp_minimo_g_dia=Decimal(str(row2.gdp_minimo)) if row2.gdp_minimo is not None else None,
+        gdp_maximo_g_dia=Decimal(str(row2.gdp_maximo)) if row2.gdp_maximo is not None else None,
+        total_animales_con_gdp=0,
         total_animales_activos=total_activos,
-        estado=estado,  # type: ignore[arg-type]
+        estado="parcial",  # type: ignore[arg-type]
     )
 
 
