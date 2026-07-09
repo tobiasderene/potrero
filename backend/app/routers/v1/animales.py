@@ -81,7 +81,8 @@ async def get_animal(
     if not animal:
         raise HTTPException(status_code=404, detail="Animal no encontrado")
     cats = await crud.get_categorias_actuales(db, [animal_id])
-    return _with_categoria(animal, cats)
+    lotes = await crud.get_lotes_nombres(db, [animal.lote_actual_id] if animal.lote_actual_id else [])
+    return _with_enrichment(animal, cats, lotes)
 
 
 @router.post("/{animal_id}/categoria", response_model=AnimalRead)
@@ -94,7 +95,8 @@ async def cambiar_categoria(
 ) -> AnimalRead:
     animal = await svc.cambiar_categoria_animal(db, animal_id, establecimiento_id, data, user_id)
     cats = await crud.get_categorias_actuales(db, [animal_id])
-    return _with_categoria(animal, cats)
+    lotes = await crud.get_lotes_nombres(db, [animal.lote_actual_id] if animal.lote_actual_id else [])
+    return _with_enrichment(animal, cats, lotes)
 
 
 @router.patch("/{animal_id}", response_model=AnimalRead)
@@ -106,4 +108,5 @@ async def actualizar_animal(
 ) -> AnimalRead:
     animal = await svc.actualizar_animal(db, animal_id, establecimiento_id, data)
     cats = await crud.get_categorias_actuales(db, [animal_id])
-    return _with_categoria(animal, cats)
+    lotes = await crud.get_lotes_nombres(db, [animal.lote_actual_id] if animal.lote_actual_id else [])
+    return _with_enrichment(animal, cats, lotes)
