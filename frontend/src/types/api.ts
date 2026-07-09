@@ -243,6 +243,118 @@ export interface CalendarioSanitarioRead {
   total_proximas_antiaftosa: number
 }
 
+// ── Dashboard ──────────────────────────────────────────────────
+
+export interface StockCategoriaRead {
+  categoria: string
+  total: number
+  coeficiente_ug: string | null
+}
+
+export interface StockRead {
+  por_categoria: StockCategoriaRead[]
+  total_activos: number
+  estado: "completo" | "sin_dato_suficiente"
+}
+
+export interface CargaEstablecimientoRead {
+  total_ug: string
+  total_animales: number
+  total_superficie_ha: string | null
+  carga_promedio_ug_ha: string | null
+  estado: "completo" | "parcial" | "sin_dato_suficiente"
+}
+
+export interface GdpRodeoRead {
+  gdp_promedio_g_dia: string | null
+  gdp_minimo_g_dia: string | null
+  gdp_maximo_g_dia: string | null
+  total_animales_con_gdp: number
+  total_animales_activos: number
+  estado: "completo" | "parcial" | "sin_dato_suficiente"
+}
+
+export interface MovimientoResumenRead {
+  evento_id: string
+  tipo_movimiento: string
+  fecha_evento: string
+  total_animales: number
+  potrero_destino_nombre: string | null
+  lote_destino_nombre: string | null
+}
+
+export interface DashboardRead {
+  fecha_consulta: string
+  stock: StockRead
+  carga_establecimiento: CargaEstablecimientoRead
+  gdp_rodeo: GdpRodeoRead
+  ultimos_movimientos: MovimientoResumenRead[]
+}
+
+// ── Alertas ────────────────────────────────────────────────────
+
+export interface AlertaRead {
+  tipo: string
+  severidad: "critica" | "alta" | "media"
+  entidad_tipo: string
+  entidad_id: string | null
+  entidad_label: string | null
+  mensaje: string
+}
+
+export interface AlertasResponse {
+  total: number
+  total_criticas: number
+  total_altas: number
+  total_medias: number
+  alertas: AlertaRead[]
+}
+
+// ── Reportes ───────────────────────────────────────────────────
+
+export interface AnimalInventarioRow {
+  id: string
+  caravana_senacsa: string | null
+  numero_campo: string | null
+  sexo: string
+  raza: string | null
+  fecha_nacimiento: string | null
+  categoria: string
+  potrero_nombre: string | null
+  lote_nombre: string | null
+  coeficiente_ug: string
+}
+
+export interface ReporteInventarioRead {
+  establecimiento_nombre: string
+  fecha_consulta: string
+  total_animales: number
+  animales: AnimalInventarioRow[]
+}
+
+export interface MovimientoReporteRow {
+  evento_id: string
+  tipo_movimiento: string
+  fecha_evento: string
+  total_animales: number
+  potrero_origen: string | null
+  potrero_destino: string | null
+  proveedor_comprador: string | null
+  precio: string | null
+  moneda: string | null
+  numero_guia_senacsa: string | null
+}
+
+export interface ReporteMovimientosRead {
+  establecimiento_nombre: string
+  fecha_desde: string
+  fecha_hasta: string
+  total_movimientos: number
+  movimientos: MovimientoReporteRow[]
+}
+
+// ── Legacy ─────────────────────────────────────────────────────
+
 export interface ErrorFila {
   fila: number
   datos: Record<string, string>

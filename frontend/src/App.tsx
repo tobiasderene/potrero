@@ -16,6 +16,7 @@ import { MovimientosPage } from "@/features/movimientos/MovimientosPage"
 import { PesajesPage } from "@/features/pesajes/PesajesPage"
 import { SanidadPage } from "@/features/sanidad/SanidadPage"
 import { CalendarioSanitarioPage } from "@/features/sanidad/CalendarioSanitarioPage"
+import { ReportesPage } from "@/features/reportes/ReportesPage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,7 @@ export default function App() {
                   <Route path="/pesajes" element={<PesajesPage />} />
                   <Route path="/sanidad" element={<SanidadPage />} />
                   <Route path="/sanidad/calendario" element={<CalendarioSanitarioPage />} />
+                  <Route path="/reportes" element={<ReportesPage />} />
                 </Route>
               </Route>
             </Route>
