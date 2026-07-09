@@ -129,6 +129,28 @@ async def calcular_gdp_lote_estimado(
     return gdp, dias
 
 
+async def anular_pesaje(
+    db: AsyncSession,
+    evento_id: uuid.UUID,
+    establecimiento_id: uuid.UUID,
+) -> Evento | None:
+    result = await db.execute(
+        select(Evento).where(
+            Evento.id == evento_id,
+            Evento.establecimiento_id == establecimiento_id,
+            Evento.tipo == "pesaje",
+        )
+    )
+    evento = result.scalar_one_or_none()
+    if evento is None:
+        return None
+    await db.execute(
+        text("UPDATE eventos SET anulado = TRUE WHERE id = CAST(:eid AS UUID)"),
+        {"eid": str(evento_id)},
+    )
+    return evento
+
+
 async def get_animales_lote_activos(
     db: AsyncSession,
     lote_id: uuid.UUID,

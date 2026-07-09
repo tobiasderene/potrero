@@ -132,6 +132,19 @@ async def registrar_pesaje_lote(
     )
 
 
+async def anular_pesaje(
+    db: AsyncSession,
+    establecimiento_id: uuid.UUID,
+    evento_id: uuid.UUID,
+) -> None:
+    evento = await crud_p.anular_pesaje(db, evento_id, establecimiento_id)
+    if evento is None:
+        raise HTTPException(status_code=404, detail="Pesaje no encontrado")
+    if evento.anulado:
+        raise HTTPException(status_code=409, detail="El pesaje ya está anulado")
+    await db.commit()
+
+
 async def calcular_gdp_animal(
     db: AsyncSession,
     animal_id: uuid.UUID,

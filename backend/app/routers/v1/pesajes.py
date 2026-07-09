@@ -72,6 +72,18 @@ async def gdp_lote(
     return await svc.calcular_gdp_lote(db, lote_id, establecimiento_id)
 
 
+@router.patch(
+    "/{evento_id}/anular",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def anular_pesaje(
+    evento_id: uuid.UUID,
+    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    await svc.anular_pesaje(db, establecimiento_id, evento_id)
+
+
 @router.get("/animal/{animal_id}", response_model=list[PesajeRead])
 async def historial_pesajes_animal(
     animal_id: uuid.UUID,
