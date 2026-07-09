@@ -7,6 +7,7 @@ export interface AnimalFilters {
   numero_campo?: string
   categoria?: string
   potrero_id?: string
+  lote_id?: string
   estado?: string
   limit?: number
   cursor?: string
@@ -43,6 +44,7 @@ export function useAnimales(filters: AnimalFilters = {}) {
       if (filters.numero_campo) params.set("numero_campo", filters.numero_campo)
       if (filters.categoria) params.set("categoria", filters.categoria)
       if (filters.potrero_id) params.set("potrero_id", filters.potrero_id)
+      if (filters.lote_id) params.set("lote_id", filters.lote_id)
       if (filters.estado) params.set("estado", filters.estado)
       if (filters.cursor) params.set("cursor", filters.cursor)
       params.set("limit", String(filters.limit ?? 20))

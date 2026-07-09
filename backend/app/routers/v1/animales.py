@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -12,9 +13,10 @@ from app.services import animales as svc
 router = APIRouter(prefix="/animales", tags=["animales"])
 
 
-def _with_categoria(animal, cats: dict) -> AnimalRead:
+def _with_enrichment(animal, cats: dict, lotes: dict) -> AnimalRead:
     r = AnimalRead.model_validate(animal)
     r.categoria_actual = cats.get(animal.id)
+    r.lote_actual_nombre = lotes.get(animal.lote_actual_id) if animal.lote_actual_id else None
     return r
 
 
@@ -24,6 +26,7 @@ async def list_animales(
     numero_campo: str | None = None,
     categoria: str | None = None,
     potrero_id: uuid.UUID | None = None,
+    lote_id: uuid.UUID | None = None,
     estado: str | None = Query(default="activo"),
     limit: int = Query(default=20, ge=1, le=100),
     cursor: str | None = None,
@@ -36,13 +39,18 @@ async def list_animales(
         numero_campo=numero_campo,
         categoria_filter=categoria,
         potrero_id=potrero_id,
+        lote_id=lote_id,
         estado=estado,
         limit=limit,
         cursor=cursor,
     )
-    cats = await crud.get_categorias_actuales(db, [a.id for a in animals])
+    lote_ids = [a.lote_actual_id for a in animals if a.lote_actual_id]
+    cats, lotes = await asyncio.gather(
+        crud.get_categorias_actuales(db, [a.id for a in animals]),
+        crud.get_lotes_nombres(db, lote_ids),
+    )
     return PaginatedCursor(
-        items=[_with_categoria(a, cats) for a in animals],
+        items=[_with_enrichment(a, cats, lotes) for a in animals],
         total=total,
         limit=limit,
         next_cursor=next_cursor,

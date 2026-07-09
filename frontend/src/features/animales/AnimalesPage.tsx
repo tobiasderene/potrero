@@ -16,6 +16,7 @@ import { AnimalForm } from "./components/AnimalForm"
 import { ImportacionCSV } from "./components/ImportacionCSV"
 import { useAnimales, type AnimalFilters } from "./hooks/useAnimales"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
+import { useLotes } from "@/features/lotes/hooks/useLotes"
 import type { AnimalRead } from "@/types/api"
 
 const CATEGORIAS = ["ternero", "ternera", "novillo", "vaquillona", "vaca", "vaca_con_cria", "toro", "buey"]
@@ -57,6 +58,13 @@ const columns: ColumnDef<AnimalRead>[] = [
     cell: ({ row }) => row.original.raza ?? "—",
   },
   {
+    id: "lote",
+    header: "Lote",
+    cell: ({ row }) => (
+      <span className="text-muted-foreground">{row.original.lote_actual_nombre ?? "—"}</span>
+    ),
+  },
+  {
     id: "estado",
     header: "Estado",
     cell: ({ row }) => (
@@ -78,6 +86,7 @@ export function AnimalesPage() {
   const [showCSV, setShowCSV] = useState(false)
 
   const { data: potreros } = usePotreros("activo")
+  const { data: lotesData } = useLotes("activo")
 
   const { data, isLoading } = useAnimales({
     ...filters,
@@ -190,6 +199,16 @@ export function AnimalesPage() {
           <SelectContent>
             <SelectItem value={ALL}>Todos</SelectItem>
             {potreros?.items.map(p => <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.lote_id ?? ALL}
+          onValueChange={(v: string) => setFilter("lote_id", v === ALL ? undefined : v)}
+        >
+          <SelectTrigger className="w-44"><SelectValue placeholder="Lote" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL}>Todos</SelectItem>
+            {lotesData?.items.map(l => <SelectItem key={l.id} value={l.id}>{l.nombre}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select

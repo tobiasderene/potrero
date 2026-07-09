@@ -52,6 +52,7 @@ class AnimalRead(BaseModel):
     fecha_egreso: date | None
     tipo_egreso: str | None
     lote_actual_id: uuid.UUID | None
+    lote_actual_nombre: str | None = None
     potrero_actual_id: uuid.UUID | None
     categoria_actual: str | None = None
     created_at: datetime

@@ -6,6 +6,7 @@ from sqlalchemy import func, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.animales import Animal, AnimalCategoria
+from app.models.lotes import Lote
 from app.schemas.animales import AnimalCreate, AnimalUpdate
 
 
@@ -103,6 +104,18 @@ def _decode_cursor(cursor: str) -> tuple[datetime, uuid.UUID]:
     return datetime.fromisoformat(dt_str), uuid.UUID(id_str)
 
 
+async def get_lotes_nombres(
+    db: AsyncSession,
+    lote_ids: list[uuid.UUID],
+) -> dict[uuid.UUID, str]:
+    if not lote_ids:
+        return {}
+    result = await db.execute(
+        select(Lote.id, Lote.nombre).where(Lote.id.in_(lote_ids))
+    )
+    return {row.id: row.nombre for row in result}
+
+
 async def list_with_cursor(
     db: AsyncSession,
     establecimiento_id: uuid.UUID,
@@ -110,6 +123,7 @@ async def list_with_cursor(
     numero_campo: str | None = None,
     categoria_filter: str | None = None,
     potrero_id: uuid.UUID | None = None,
+    lote_id: uuid.UUID | None = None,
     estado: str | None = "activo",
     limit: int = 20,
     cursor: str | None = None,
@@ -124,6 +138,8 @@ async def list_with_cursor(
         base = base.where(Animal.numero_campo.ilike(f"%{numero_campo}%"))
     if potrero_id:
         base = base.where(Animal.potrero_actual_id == potrero_id)
+    if lote_id:
+        base = base.where(Animal.lote_actual_id == lote_id)
     if categoria_filter:
         subq = (
             select(AnimalCategoria.animal_id)
