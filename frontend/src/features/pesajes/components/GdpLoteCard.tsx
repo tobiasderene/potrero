@@ -74,7 +74,9 @@ export function GdpLoteCard({ loteId }: Props) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Basado en {data.total_animales_con_gdp} de {data.total_animales_lote} animales con ≥2 pesajes
+        {data.total_animales_con_gdp > 0
+          ? `Basado en ${data.total_animales_con_gdp} de ${data.total_animales_lote} animales con ≥2 pesajes individuales`
+          : "Estimado a partir de pesajes de lote — sin pesajes individuales"}
       </p>
     </div>
   )
