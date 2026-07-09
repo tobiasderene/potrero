@@ -153,7 +153,7 @@ async def get_proximas_antiaftosa(
               AND a.estado = 'activo'
               AND (
                   ua.ultima_fecha IS NULL
-                  OR (ua.ultima_fecha + INTERVAL '180 days')::DATE <= CURRENT_DATE + :dias_alerta
+                  OR (ua.ultima_fecha + INTERVAL '180 days')::DATE <= CURRENT_DATE + CAST(:dias_alerta AS INTEGER)
               )
             ORDER BY proxima_estimada ASC NULLS FIRST
             LIMIT 100

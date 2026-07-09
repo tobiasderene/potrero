@@ -263,7 +263,7 @@ async def _alerta_vacunacion_proxima(
             WHERE a.establecimiento_id = :est_id
               AND a.estado = 'activo'
               AND (ua.ultima_fecha + INTERVAL '180 days')::DATE
-                  BETWEEN CURRENT_DATE AND CURRENT_DATE + 15
+                  BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '15 days')::DATE
             ORDER BY proxima ASC
             LIMIT :lim
         """),
@@ -321,7 +321,7 @@ async def _alerta_sin_pesaje_invernada(
               AND l.proposito = 'invernada'
               AND (
                 up.ultimo_pesaje IS NULL
-                OR up.ultimo_pesaje < CURRENT_DATE - 60
+                OR up.ultimo_pesaje < (CURRENT_DATE - INTERVAL '60 days')::DATE
               )
             ORDER BY up.ultimo_pesaje ASC NULLS FIRST
         """),
