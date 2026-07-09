@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api, getApiError } from "@/lib/api/client"
-import type { Paginated, PotreroRead } from "@/types/api"
+import type { CargaAnimalRead, Paginated, PotreroRead } from "@/types/api"
 
 interface PotreroPayload {
   nombre?: string
@@ -41,6 +41,17 @@ export function useUpdatePotrero() {
       return data
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["potreros"] }),
+  })
+}
+
+export function usePotrerosCarga() {
+  return useQuery<CargaAnimalRead[]>({
+    queryKey: ["potreros-cargas"],
+    queryFn: async () => {
+      const { data } = await api.get("/api/v1/potreros/cargas")
+      return data
+    },
+    staleTime: 60_000,
   })
 }
 

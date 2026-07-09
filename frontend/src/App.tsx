@@ -11,6 +11,8 @@ import { PotrerosPage } from "@/features/potreros/PotrerosPage"
 import { CategoriasPage } from "@/features/categorias/CategoriasPage"
 import { AnimalesPage } from "@/features/animales/AnimalesPage"
 import { AnimalFichaPage } from "@/features/animales/AnimalFichaPage"
+import { LotesPage } from "@/features/lotes/LotesPage"
+import { MovimientosPage } from "@/features/movimientos/MovimientosPage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,10 +34,12 @@ export default function App() {
               <Route element={<RequireEstablecimiento />}>
                 <Route element={<AppLayout />}>
                   <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/potreros" element={<PotrerosPage />} />
-                  <Route path="/categorias" element={<CategoriasPage />} />
                   <Route path="/animales" element={<AnimalesPage />} />
                   <Route path="/animales/:id" element={<AnimalFichaPage />} />
+                  <Route path="/lotes" element={<LotesPage />} />
+                  <Route path="/movimientos" element={<MovimientosPage />} />
+                  <Route path="/potreros" element={<PotrerosPage />} />
+                  <Route path="/categorias" element={<CategoriasPage />} />
                 </Route>
               </Route>
             </Route>

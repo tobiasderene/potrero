@@ -77,6 +77,60 @@ export interface AnimalRead {
   updated_at: string
 }
 
+export interface LoteRead {
+  id: string
+  establecimiento_id: string
+  nombre: string
+  proposito: string
+  potrero_principal_id: string | null
+  fecha_formacion: string
+  fecha_cierre: string | null
+  peso_promedio_ingreso: string | null
+  peso_objetivo_salida: string | null
+  plazo_estimado_dias: number | null
+  estado: string
+  total_animales: number
+  created_at: string
+  updated_at: string
+}
+
+export interface MovimientoRead {
+  evento_id: string
+  tipo_movimiento: string
+  fecha_evento: string
+  fecha_registro: string
+  observaciones: string | null
+  animal_ids: string[]
+  potrero_origen_id: string | null
+  potrero_destino_id: string | null
+  lote_destino_id: string | null
+  proveedor: string | null
+  establecimiento_origen: string | null
+  numero_guia_senacsa: string | null
+  precio_unitario: string | null
+  tipo_precio: string | null
+  moneda: string | null
+  comprador: string | null
+  destino_venta: string | null
+  precio_venta_unitario: string | null
+  peso_venta_promedio_kg: string | null
+  causa_muerte: string | null
+  advertencias: string[]
+}
+
+export interface CargaAnimalRead {
+  potrero_id: string
+  potrero_nombre: string
+  superficie_ha: string | null
+  capacidad_max_ug_ha: string | null
+  capacidad_total_ug: string | null
+  carga_actual_ug: string
+  total_animales: number
+  porcentaje_ocupacion: string | null
+  estado_carga: "completo" | "parcial" | "sin_dato_suficiente"
+  semaforo: "verde" | "amarillo" | "rojo" | null
+}
+
 export interface ErrorFila {
   fila: number
   datos: Record<string, string>

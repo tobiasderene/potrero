@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Pencil, Plus } from "lucide-react"
-import type { PotreroRead } from "@/types/api"
-import { getApiError, useCreatePotrero, usePotreros, useUpdatePotrero } from "./hooks/usePotreros"
+import type { CargaAnimalRead, PotreroRead } from "@/types/api"
+import { getApiError, useCreatePotrero, usePotreros, usePotrerosCarga, useUpdatePotrero } from "./hooks/usePotreros"
 
 type EstadoFilter = "todos" | "activo" | "en_descanso" | "en_recuperacion" | "archivado"
 
@@ -145,7 +145,50 @@ function CreatePotreroCard({ onCancel }: { onCancel: () => void }) {
 
 const ESTADOS_POTRERO = ["activo", "en_descanso", "en_recuperacion", "archivado"] as const
 
-function PotreroCard({ potrero }: { potrero: PotreroRead }) {
+const SEMAFORO_COLOR: Record<string, string> = {
+  verde: "bg-green-500",
+  amarillo: "bg-yellow-400",
+  rojo: "bg-red-500",
+}
+
+function CargaBar({ carga }: { carga: CargaAnimalRead }) {
+  if (carga.estado_carga === "sin_dato_suficiente") return null
+  const pct = parseFloat(carga.porcentaje_ocupacion ?? "0")
+  const colorClass = carga.semaforo ? SEMAFORO_COLOR[carga.semaforo] : "bg-gray-300"
+  const pctCapped = Math.min(pct, 150)
+
+  return (
+    <div className="pt-2 space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">
+          {carga.total_animales} animales · {parseFloat(carga.carga_actual_ug).toFixed(1)} UG
+        </span>
+        <div className="flex items-center gap-1.5">
+          {carga.semaforo && (
+            <span className={`inline-block w-2 h-2 rounded-full ${colorClass}`} />
+          )}
+          <span className="font-medium">
+            {carga.porcentaje_ocupacion !== null
+              ? `${parseFloat(carga.porcentaje_ocupacion).toFixed(0)}%`
+              : carga.estado_carga === "parcial"
+              ? "parcial"
+              : "—"}
+          </span>
+        </div>
+      </div>
+      {pct > 0 && (
+        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${colorClass}`}
+            style={{ width: `${Math.min((pctCapped / 150) * 100, 100)}%` }}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PotreroCard({ potrero, carga }: { potrero: PotreroRead; carga?: CargaAnimalRead }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState<PotreroForm>(formFromPotrero(potrero))
   const [error, setError] = useState<string | null>(null)
@@ -249,6 +292,7 @@ function PotreroCard({ potrero }: { potrero: PotreroRead }) {
                 </p>
               </div>
             </div>
+            {carga && <CargaBar carga={carga} />}
           </>
         )}
       </CardContent>
@@ -262,8 +306,10 @@ export function PotrerosPage() {
 
   const estadoParam = filtro === "todos" ? undefined : filtro
   const { data, isLoading, isError } = usePotreros(estadoParam)
+  const { data: cargas } = usePotrerosCarga()
 
   const items = data?.items ?? []
+  const cargaMap = new Map((cargas ?? []).map((c) => [c.potrero_id, c]))
 
   return (
     <div className="p-6 space-y-6">
@@ -319,7 +365,7 @@ export function PotrerosPage() {
       {items.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((p) => (
-            <PotreroCard key={p.id} potrero={p} />
+            <PotreroCard key={p.id} potrero={p} carga={cargaMap.get(p.id)} />
           ))}
         </div>
       )}
