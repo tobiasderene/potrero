@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
+import { AsignacionLoteForm } from "./components/AsignacionLoteForm"
 import { EgresoMuerteForm } from "./components/EgresoMuerteForm"
 import { EgresoVentaForm } from "./components/EgresoVentaForm"
 import { IngresoCompraForm } from "./components/IngresoCompraForm"
@@ -15,6 +16,7 @@ type TipoMovimiento =
   | "ingreso_compra"
   | "nacimiento"
   | "traslado"
+  | "asignacion_lote"
   | "egreso_venta"
   | "egreso_muerte"
 
@@ -43,6 +45,12 @@ const TIPOS: {
     color: "bg-orange-50 border-orange-200 hover:border-orange-400",
   },
   {
+    value: "asignacion_lote",
+    label: "Asignación a lote",
+    description: "Agregar animales existentes a un lote activo",
+    color: "bg-yellow-50 border-yellow-200 hover:border-yellow-400",
+  },
+  {
     value: "egreso_venta",
     label: "Egreso por venta",
     description: "Registrar venta de animales (requiere caravana SENACSA)",
@@ -62,6 +70,7 @@ interface SuccessResult {
   evento_id: string
   tipo: TipoMovimiento
   advertencias?: string[]
+  asignados?: number
   extra?: Record<string, unknown>
 }
 
@@ -158,6 +167,13 @@ export function MovimientosPage() {
                 onCancel={resetear}
               />
             )}
+            {tipoSeleccionado === "asignacion_lote" && (
+              <AsignacionLoteForm
+                lotes={lotes}
+                onSuccess={(r) => onSuccess({ evento_id: r.evento_id, asignados: r.asignados })}
+                onCancel={resetear}
+              />
+            )}
             {tipoSeleccionado === "egreso_venta" && (
               <EgresoVentaForm
                 onSuccess={onSuccess}
@@ -181,7 +197,11 @@ export function MovimientosPage() {
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
               <div>
-                <p className="font-semibold text-green-900">Movimiento registrado exitosamente</p>
+                <p className="font-semibold text-green-900">
+                  {resultado.tipo === "asignacion_lote"
+                    ? `${resultado.asignados} animal${resultado.asignados !== 1 ? "es" : ""} asignado${resultado.asignados !== 1 ? "s" : ""} al lote`
+                    : "Movimiento registrado exitosamente"}
+                </p>
                 <p className="text-sm text-green-700">{tipoLabel}</p>
               </div>
             </div>
