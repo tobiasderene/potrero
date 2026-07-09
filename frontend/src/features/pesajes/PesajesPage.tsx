@@ -1,17 +1,17 @@
 import { useState } from "react"
-import { Scale, Trash2 } from "lucide-react"
+import { Scale } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PesajeIndividualForm } from "./components/PesajeIndividualForm"
 import { PesajeLoteForm } from "./components/PesajeLoteForm"
 import { GdpLoteCard } from "./components/GdpLoteCard"
+import { PesajesHistorial } from "./components/PesajesHistorial"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { usePesajesLote, useAnularPesaje } from "./hooks/usePesajes"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 
 export function PesajesPage() {
   const [showIndividual, setShowIndividual] = useState(false)
@@ -81,40 +81,12 @@ export function PesajesPage() {
           )}
 
           {loteGdpId && pesajesLote && pesajesLote.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Historial de pesajes</p>
-              <div className="rounded-md border divide-y text-sm">
-                {pesajesLote.map((p) => (
-                  <div key={p.evento_id} className="flex items-center justify-between px-3 py-2 gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-muted-foreground w-24 shrink-0">{p.fecha_evento}</span>
-                      <span className="font-medium tabular-nums">{Number(p.peso_kg).toFixed(1)} kg</span>
-                      {p.cantidad_muestra != null && (
-                        <span className="text-muted-foreground text-xs">muestra: {p.cantidad_muestra}</span>
-                      )}
-                      {p.gdp_g_dia != null && (
-                        <Badge variant="secondary" className="text-xs">
-                          {Number(p.gdp_g_dia).toFixed(0)} g/d
-                        </Badge>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive shrink-0"
-                      disabled={anulando}
-                      onClick={() => {
-                        if (confirm(`¿Anular pesaje del ${p.fecha_evento} (${Number(p.peso_kg).toFixed(1)} kg)?`)) {
-                          anular({ eventoId: p.evento_id, loteId: loteGdpId })
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <PesajesHistorial
+              pesajes={pesajesLote}
+              loteId={loteGdpId}
+              anular={anular}
+              anulando={anulando}
+            />
           )}
         </TabsContent>
       </Tabs>
