@@ -11,6 +11,49 @@ from sqlalchemy import TIMESTAMP
 from app.db.base import Base
 
 
+class EventoPesaje(Base):
+    __tablename__ = "evento_pesajes"
+
+    evento_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("eventos.id"), primary_key=True)
+    animal_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("animales.id"))
+    lote_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("lotes.id"))
+    tipo: Mapped[str] = mapped_column(Text, nullable=False)
+    peso_kg: Mapped[Decimal] = mapped_column(Numeric(7, 2), nullable=False)
+    cantidad_muestra: Mapped[int | None] = mapped_column(Integer)
+    gdp_g_dia: Mapped[Decimal | None] = mapped_column(Numeric(8, 2))
+    dias_intervalo: Mapped[int | None] = mapped_column(Integer)
+
+    __table_args__ = (
+        CheckConstraint("tipo IN ('individual','lote_estimado')", name="ck_pesajes_tipo"),
+        CheckConstraint("peso_kg > 0", name="ck_pesajes_peso_positivo"),
+    )
+
+
+class EventoVacunacion(Base):
+    __tablename__ = "evento_vacunaciones"
+
+    evento_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("eventos.id"), primary_key=True)
+    biologico: Mapped[str] = mapped_column(Text, nullable=False)
+    laboratorio: Mapped[str | None] = mapped_column(Text)
+    numero_lote_biologico: Mapped[str | None] = mapped_column(Text)
+    fecha_vencimiento_biol: Mapped[date | None] = mapped_column(Date)
+    dosis_ml: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
+    via_administracion: Mapped[str | None] = mapped_column(Text)
+    es_antiaftosa: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    lote_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("lotes.id"))
+
+
+class EventoDiagnostico(Base):
+    __tablename__ = "evento_diagnosticos"
+
+    evento_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("eventos.id"), primary_key=True)
+    animal_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("animales.id"), nullable=False)
+    descripcion: Mapped[str] = mapped_column(Text, nullable=False)
+    veterinario: Mapped[str | None] = mapped_column(Text)
+    con_tratamiento: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    tratamiento_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("evento_tratamientos.evento_id"))
+
+
 class Evento(Base):
     __tablename__ = "eventos"
 

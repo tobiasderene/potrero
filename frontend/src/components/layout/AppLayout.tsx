@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { LayoutDashboard, LogOut, MapPin, Scale, PawPrint, Layers, ArrowLeftRight } from "lucide-react"
+import { LayoutDashboard, LogOut, MapPin, Scale, PawPrint, Layers, ArrowLeftRight, Weight, Stethoscope, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/features/auth/AuthContext"
@@ -11,6 +11,9 @@ const NAV = [
   { to: "/movimientos", icon: ArrowLeftRight, label: "Movimientos" },
   { to: "/animales", icon: PawPrint, label: "Animales" },
   { to: "/lotes", icon: Layers, label: "Lotes" },
+  { to: "/pesajes", icon: Weight, label: "Pesajes" },
+  { to: "/sanidad", icon: Stethoscope, label: "Sanidad" },
+  { to: "/sanidad/calendario", icon: Calendar, label: "Calendario San." },
   { to: "/potreros", icon: MapPin, label: "Potreros" },
   { to: "/categorias", icon: Scale, label: "Categorías UG" },
 ]

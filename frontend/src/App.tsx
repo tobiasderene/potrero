@@ -13,6 +13,9 @@ import { AnimalesPage } from "@/features/animales/AnimalesPage"
 import { AnimalFichaPage } from "@/features/animales/AnimalFichaPage"
 import { LotesPage } from "@/features/lotes/LotesPage"
 import { MovimientosPage } from "@/features/movimientos/MovimientosPage"
+import { PesajesPage } from "@/features/pesajes/PesajesPage"
+import { SanidadPage } from "@/features/sanidad/SanidadPage"
+import { CalendarioSanitarioPage } from "@/features/sanidad/CalendarioSanitarioPage"
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +43,9 @@ export default function App() {
                   <Route path="/movimientos" element={<MovimientosPage />} />
                   <Route path="/potreros" element={<PotrerosPage />} />
                   <Route path="/categorias" element={<CategoriasPage />} />
+                  <Route path="/pesajes" element={<PesajesPage />} />
+                  <Route path="/sanidad" element={<SanidadPage />} />
+                  <Route path="/sanidad/calendario" element={<CalendarioSanitarioPage />} />
                 </Route>
               </Route>
             </Route>

@@ -131,6 +131,118 @@ export interface CargaAnimalRead {
   semaforo: "verde" | "amarillo" | "rojo" | null
 }
 
+export interface PesajeRead {
+  evento_id: string
+  fecha_evento: string
+  fecha_registro: string
+  tipo: "individual" | "lote_estimado"
+  animal_id: string | null
+  lote_id: string | null
+  peso_kg: string
+  cantidad_muestra: number | null
+  gdp_g_dia: string | null
+  dias_intervalo: number | null
+  observaciones: string | null
+}
+
+export interface GdpAnimalRead {
+  animal_id: string
+  gdp_g_dia: string | null
+  peso_anterior_kg: string | null
+  dias_intervalo: number | null
+  estado: "completo" | "sin_dato_suficiente"
+}
+
+export interface GdpLoteRead {
+  lote_id: string
+  gdp_promedio_g_dia: string | null
+  gdp_minimo_g_dia: string | null
+  gdp_maximo_g_dia: string | null
+  total_animales_con_gdp: number
+  total_animales_lote: number
+  estado: "completo" | "parcial" | "sin_dato_suficiente"
+}
+
+export interface VariacionGdpRead {
+  animal_id: string
+  gdp_animal_g_dia: string | null
+  gdp_promedio_lote_g_dia: string | null
+  porcentaje_vs_promedio: string | null
+  alerta_bajo: boolean
+  estado: "completo" | "parcial" | "sin_dato_suficiente"
+}
+
+export interface VacunacionRead {
+  evento_id: string
+  fecha_evento: string
+  fecha_registro: string
+  biologico: string
+  laboratorio: string | null
+  numero_lote_biologico: string | null
+  fecha_vencimiento_biol: string | null
+  dosis_ml: string | null
+  via_administracion: string | null
+  es_antiaftosa: boolean
+  lote_id: string | null
+  animal_ids: string[]
+  total_animales: number
+}
+
+export interface TratamientoRead {
+  evento_id: string
+  fecha_evento: string
+  fecha_registro: string
+  animal_id: string
+  diagnostico: string | null
+  medicamento: string
+  dosis: string | null
+  via_administracion: string | null
+  duracion_dias: number | null
+  dias_carencia: number
+  fecha_fin_carencia: string
+  veterinario: string | null
+  costo: string | null
+  moneda_costo: string | null
+  observaciones: string | null
+}
+
+export interface DiagnosticoRead {
+  evento_id: string
+  fecha_evento: string
+  fecha_registro: string
+  animal_id: string
+  descripcion: string
+  veterinario: string | null
+  con_tratamiento: boolean
+  observaciones: string | null
+}
+
+export interface CarenciaActiva {
+  animal_id: string
+  caravana_senacsa: string | null
+  numero_campo: string | null
+  medicamento: string
+  fecha_fin_carencia: string
+  dias_restantes: number
+}
+
+export interface ProximaAntiaftosa {
+  animal_id: string
+  caravana_senacsa: string | null
+  numero_campo: string | null
+  ultima_antiaftosa: string | null
+  proxima_estimada: string | null
+  dias_para_vencimiento: number | null
+  estado: "al_dia" | "proximo" | "vencido" | "sin_registro"
+}
+
+export interface CalendarioSanitarioRead {
+  carencias_activas: CarenciaActiva[]
+  proximas_antiaftosa: ProximaAntiaftosa[]
+  total_carencias: number
+  total_proximas_antiaftosa: number
+}
+
 export interface ErrorFila {
   fila: number
   datos: Record<string, string>
