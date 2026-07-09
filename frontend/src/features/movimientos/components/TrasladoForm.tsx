@@ -1,12 +1,11 @@
 import { useState } from "react"
-import { CheckCircle2, X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAnimales } from "@/features/animales/hooks/useAnimales"
-import type { PotreroRead } from "@/types/api"
+import { AnimalMultiSearchSelect } from "@/components/AnimalMultiSearchSelect"
+import type { AnimalRead, PotreroRead } from "@/types/api"
 import { getApiError, useTraslado, type TrasladoPayload } from "../hooks/useMovimientos"
 
 interface Props {
@@ -20,37 +19,19 @@ export function TrasladoForm({ potreros, onSuccess, onCancel }: Props) {
 
   const [fechaEvento, setFechaEvento] = useState(today)
   const [potreroId, setPotreroId] = useState("")
-  const [busqueda, setBusqueda] = useState("")
-  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
+  const [seleccionados, setSeleccionados] = useState<Map<string, AnimalRead>>(new Map())
   const [observaciones, setObservaciones] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const { mutateAsync, isPending } = useTraslado()
-  const { data } = useAnimales({ estado: "activo" })
-  const animales = data?.items ?? []
 
-  const filtrados = animales.filter((a) => {
-    const q = busqueda.toLowerCase()
-    return (
-      !q ||
-      a.caravana_senacsa?.toLowerCase().includes(q) ||
-      a.numero_campo?.toLowerCase().includes(q)
-    )
-  })
-
-  function toggle(id: string) {
+  function toggleAnimal(a: AnimalRead) {
     setSeleccionados((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const next = new Map(prev)
+      if (next.has(a.id)) next.delete(a.id)
+      else next.set(a.id, a)
       return next
     })
-  }
-
-  function animalLabel(a: { caravana_senacsa: string | null; numero_campo: string | null; categoria_actual?: string | null }) {
-    const id = a.caravana_senacsa ?? a.numero_campo ?? "—"
-    const cat = a.categoria_actual ? ` — ${a.categoria_actual.replace(/_/g, " ")}` : ""
-    return id + cat
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -62,7 +43,7 @@ export function TrasladoForm({ potreros, onSuccess, onCancel }: Props) {
 
     const payload: TrasladoPayload = {
       fecha_evento: fechaEvento,
-      animal_ids: Array.from(seleccionados),
+      animal_ids: Array.from(seleccionados.keys()),
       potrero_destino_id: potreroId,
       observaciones: observaciones.trim() || null,
     }
@@ -99,44 +80,12 @@ export function TrasladoForm({ potreros, onSuccess, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Animales a trasladar * ({seleccionados.size} seleccionados)</Label>
-          {seleccionados.size > 0 && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => setSeleccionados(new Set())}>
-              <X className="h-3.5 w-3.5 mr-1" /> Limpiar
-            </Button>
-          )}
-        </div>
-        <Input
-          placeholder="Buscar por caravana o número de campo..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-        <div className="rounded-md border max-h-56 overflow-y-auto">
-          {filtrados.length === 0 ? (
-            <p className="p-3 text-sm text-muted-foreground">Sin resultados</p>
-          ) : (
-            filtrados.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted/50 transition-colors ${
-                  seleccionados.has(a.id) ? "bg-primary/5" : ""
-                }`}
-                onClick={() => toggle(a.id)}
-              >
-                {seleccionados.has(a.id) ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                ) : (
-                  <span className="h-3.5 w-3.5 rounded-full border shrink-0" />
-                )}
-                <span>{animalLabel(a)}</span>
-              </button>
-            ))
-          )}
-        </div>
-      </div>
+      <AnimalMultiSearchSelect
+        label="Animales a trasladar"
+        selected={seleccionados}
+        onToggle={toggleAnimal}
+        onClear={() => setSeleccionados(new Map())}
+      />
 
       <div className="space-y-1.5">
         <Label>Observaciones</Label>

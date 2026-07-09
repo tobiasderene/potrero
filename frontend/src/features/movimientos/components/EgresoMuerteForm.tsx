@@ -3,8 +3,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAnimales } from "@/features/animales/hooks/useAnimales"
+import { AnimalSearchSelect } from "@/features/pesajes/components/AnimalSearchSelect"
+import type { AnimalRead } from "@/types/api"
 import { getApiError, useEgresoMuerte, type EgresoMuertePayload } from "../hooks/useMovimientos"
 
 interface Props {
@@ -16,29 +16,21 @@ export function EgresoMuerteForm({ onSuccess, onCancel }: Props) {
   const today = new Date().toISOString().slice(0, 10)
 
   const [fechaEvento, setFechaEvento] = useState(today)
-  const [animalId, setAnimalId] = useState("")
+  const [animalSeleccionado, setAnimalSeleccionado] = useState<AnimalRead | null>(null)
   const [causa, setCausa] = useState("")
   const [observaciones, setObservaciones] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   const { mutateAsync, isPending } = useEgresoMuerte()
-  const { data } = useAnimales({ estado: "activo" })
-  const animales = data?.items ?? []
-
-  function animalLabel(a: { caravana_senacsa: string | null; numero_campo: string | null; categoria_actual?: string | null }) {
-    const id = a.caravana_senacsa ?? a.numero_campo ?? "—"
-    const cat = a.categoria_actual ? ` — ${a.categoria_actual.replace(/_/g, " ")}` : ""
-    return id + cat
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
-    if (!animalId) { setError("Debe seleccionar el animal"); return }
+    if (!animalSeleccionado) { setError("Debe seleccionar el animal"); return }
 
     const payload: EgresoMuertePayload = {
       fecha_evento: fechaEvento,
-      animal_id: animalId,
+      animal_id: animalSeleccionado.id,
       causa_muerte: causa.trim() || null,
       observaciones: observaciones.trim() || null,
     }
@@ -69,15 +61,30 @@ export function EgresoMuerteForm({ onSuccess, onCancel }: Props) {
 
         <div className="space-y-1.5 sm:col-span-2">
           <Label>Animal *</Label>
-          <Select value={animalId || "__none__"} onValueChange={(v) => setAnimalId(v === "__none__" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="Seleccionar animal..." /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none__">— Seleccionar —</SelectItem>
-              {animales.map((a) => (
-                <SelectItem key={a.id} value={a.id}>{animalLabel(a)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!animalSeleccionado ? (
+            <AnimalSearchSelect onSelect={setAnimalSeleccionado} />
+          ) : (
+            <div className="rounded-md bg-muted px-3 py-2 flex items-center justify-between text-sm">
+              <div>
+                <span className="font-mono font-medium">
+                  {animalSeleccionado.caravana_senacsa ?? animalSeleccionado.numero_campo}
+                </span>
+                <span className="text-muted-foreground ml-2 capitalize">
+                  {animalSeleccionado.categoria_actual?.replace(/_/g, " ") ?? ""}
+                </span>
+                {animalSeleccionado.lote_actual_nombre && (
+                  <span className="text-muted-foreground"> · {animalSeleccionado.lote_actual_nombre}</span>
+                )}
+              </div>
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground underline"
+                onClick={() => setAnimalSeleccionado(null)}
+              >
+                cambiar
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="space-y-1.5 sm:col-span-2">
@@ -97,7 +104,7 @@ export function EgresoMuerteForm({ onSuccess, onCancel }: Props) {
 
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" variant="destructive" disabled={isPending || !animalId}>
+        <Button type="submit" variant="destructive" disabled={isPending || !animalSeleccionado}>
           {isPending ? "Registrando..." : "Registrar muerte"}
         </Button>
       </div>

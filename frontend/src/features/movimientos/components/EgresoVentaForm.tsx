@@ -1,12 +1,12 @@
 import { useState } from "react"
-import { CheckCircle2, ShieldAlert, X } from "lucide-react"
+import { ShieldAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAnimales } from "@/features/animales/hooks/useAnimales"
+import { AnimalMultiSearchSelect } from "@/components/AnimalMultiSearchSelect"
 import type { AnimalRead } from "@/types/api"
 import { getApiError, useEgresoVenta, type EgresoVentaPayload } from "../hooks/useMovimientos"
 
@@ -32,43 +32,21 @@ export function EgresoVentaForm({ onSuccess, onCancel }: Props) {
   const [moneda, setMoneda] = useState<"PYG" | "USD">("PYG")
   const [guia, setGuia] = useState("")
   const [observaciones, setObservaciones] = useState("")
-  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set())
-  const [busqueda, setBusqueda] = useState("")
+  const [seleccionados, setSeleccionados] = useState<Map<string, AnimalRead>>(new Map())
   const [error, setError] = useState<string | null>(null)
   const [carenciasBloqueo, setCarenciasBloqueo] = useState<CarenciaDetail[]>([])
 
   const { mutateAsync, isPending } = useEgresoVenta()
-  const { data } = useAnimales({ estado: "activo" })
-  const animales = data?.items ?? []
 
-  const filtrados = animales.filter((a) => {
-    const q = busqueda.toLowerCase()
-    return (
-      !q ||
-      a.caravana_senacsa?.toLowerCase().includes(q) ||
-      a.numero_campo?.toLowerCase().includes(q)
-    )
-  })
-
-  function toggle(id: string) {
+  function toggleAnimal(a: AnimalRead) {
     setSeleccionados((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const next = new Map(prev)
+      if (next.has(a.id)) next.delete(a.id)
+      else next.set(a.id, a)
       return next
     })
     setCarenciasBloqueo([])
     setError(null)
-  }
-
-  function animalLabel(a: AnimalRead) {
-    const id = a.caravana_senacsa ?? a.numero_campo ?? "—"
-    const cat = a.categoria_actual ? ` — ${a.categoria_actual.replace(/_/g, " ")}` : ""
-    return id + cat
-  }
-
-  function sinCaravana(a: AnimalRead) {
-    return !a.caravana_senacsa
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -80,7 +58,7 @@ export function EgresoVentaForm({ onSuccess, onCancel }: Props) {
 
     const payload: EgresoVentaPayload = {
       fecha_evento: fechaEvento,
-      animal_ids: Array.from(seleccionados),
+      animal_ids: Array.from(seleccionados.keys()),
       comprador: comprador.trim() || null,
       destino_venta: destino || null,
       precio_venta_unitario: precio ? parseFloat(precio) : null,
@@ -117,11 +95,15 @@ export function EgresoVentaForm({ onSuccess, onCancel }: Props) {
       {carenciasBloqueo.length > 0 && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 space-y-2">
           <p className="text-sm font-semibold text-destructive">Animales bloqueados por carencia</p>
-          {carenciasBloqueo.map((c) => (
-            <div key={c.animal_id} className="text-xs text-muted-foreground">
-              ID: {c.animal_id.slice(0, 8)}... — {c.medicamento} — libre el {c.fecha_fin_carencia}
-            </div>
-          ))}
+          {carenciasBloqueo.map((c) => {
+            const a = seleccionados.get(c.animal_id)
+            const label = a ? (a.caravana_senacsa ?? a.numero_campo ?? c.animal_id.slice(0, 8) + "…") : c.animal_id.slice(0, 8) + "…"
+            return (
+              <div key={c.animal_id} className="text-xs text-muted-foreground">
+                {label} — {c.medicamento} — libre el {c.fecha_fin_carencia}
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -169,50 +151,21 @@ export function EgresoVentaForm({ onSuccess, onCancel }: Props) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Animales a vender * ({seleccionados.size} seleccionados)</Label>
-          {seleccionados.size > 0 && (
-            <Button type="button" variant="ghost" size="sm" onClick={() => { setSeleccionados(new Set()); setCarenciasBloqueo([]); setError(null) }}>
-              <X className="h-3.5 w-3.5 mr-1" /> Limpiar
-            </Button>
-          )}
-        </div>
-        <Input
-          placeholder="Buscar por caravana o número de campo..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
-        <div className="rounded-md border max-h-56 overflow-y-auto">
-          {filtrados.length === 0 ? (
-            <p className="p-3 text-sm text-muted-foreground">Sin resultados</p>
-          ) : (
-            filtrados.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-muted/50 transition-colors ${
-                  seleccionados.has(a.id) ? "bg-primary/5" : ""
-                } ${sinCaravana(a) ? "opacity-60" : ""}`}
-                onClick={() => toggle(a.id)}
-              >
-                {seleccionados.has(a.id) ? (
-                  <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                ) : (
-                  <span className="h-3.5 w-3.5 rounded-full border shrink-0" />
-                )}
-                <span className="flex-1">{animalLabel(a)}</span>
-                {sinCaravana(a) && (
-                  <Badge variant="destructive" className="text-xs h-5">Sin caravana</Badge>
-                )}
-              </button>
-            ))
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Todos los animales deben tener caravana SENACSA para egresos externos (RN-04)
-        </p>
-      </div>
+      <AnimalMultiSearchSelect
+        label="Animales a vender"
+        selected={seleccionados}
+        onToggle={toggleAnimal}
+        onClear={() => { setSeleccionados(new Map()); setCarenciasBloqueo([]); setError(null) }}
+        renderBadge={(a) =>
+          !a.caravana_senacsa ? (
+            <Badge variant="destructive" className="text-xs h-5 shrink-0">Sin caravana</Badge>
+          ) : null
+        }
+      />
+
+      <p className="text-xs text-muted-foreground">
+        Todos los animales deben tener caravana SENACSA para egresos externos (RN-04)
+      </p>
 
       <div className="space-y-1.5">
         <Label>Observaciones</Label>
