@@ -43,35 +43,40 @@ export function GdpLoteCard({ loteId }: Props) {
         <EstadoBadge estado={data.estado} />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-            <Minus className="h-3 w-3" />
-            <span className="text-xs">Mínimo</span>
+      {minimo !== null && maximo !== null ? (
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
+              <Minus className="h-3 w-3" />
+              <span className="text-xs">Mínimo</span>
+            </div>
+            <p className="text-lg font-semibold">{minimo.toFixed(0)} g/d</p>
           </div>
-          <p className="text-lg font-semibold">
-            {minimo !== null ? `${minimo.toFixed(0)} g/d` : "—"}
-          </p>
+          <div className="text-center border-x">
+            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-xs">Promedio</span>
+            </div>
+            <p className="text-2xl font-bold">
+              {promedio !== null ? `${promedio.toFixed(0)} g/d` : "—"}
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
+              <TrendingUp className="h-3 w-3" />
+              <span className="text-xs">Máximo</span>
+            </div>
+            <p className="text-lg font-semibold">{maximo.toFixed(0)} g/d</p>
+          </div>
         </div>
-        <div className="text-center border-x">
-          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-            <TrendingUp className="h-3 w-3" />
-            <span className="text-xs">Promedio</span>
-          </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
           <p className="text-2xl font-bold">
             {promedio !== null ? `${promedio.toFixed(0)} g/d` : "—"}
           </p>
         </div>
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
-            <TrendingUp className="h-3 w-3" />
-            <span className="text-xs">Máximo</span>
-          </div>
-          <p className="text-lg font-semibold">
-            {maximo !== null ? `${maximo.toFixed(0)} g/d` : "—"}
-          </p>
-        </div>
-      </div>
+      )}
 
       <p className="text-xs text-muted-foreground">
         {data.total_animales_con_gdp > 0
