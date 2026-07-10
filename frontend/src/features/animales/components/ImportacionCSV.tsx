@@ -2,11 +2,15 @@ import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Alert } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Download, Upload, CheckCircle, XCircle } from "lucide-react"
 import { useImportarCSV, getApiError } from "../hooks/useAnimales"
+import { useLotes, useCreateLote } from "@/features/lotes/hooks/useLotes"
 import type { ErrorFila, ImportacionRead } from "@/types/api"
 
-const CHUNK_SIZE = 200  // filas por lote; ~5-8s por lote en Cloud Run
+const CHUNK_SIZE = 200
 
 interface Props {
   onClose: () => void
@@ -18,6 +22,15 @@ interface ProgresoChunk {
   filasProcesadas: number
   filasTotal: number
 }
+
+type ModoLote = "ninguno" | "existente" | "nuevo"
+
+const PROPOSITOS = [
+  { value: "invernada", label: "Invernada" },
+  { value: "cria", label: "Cría" },
+  { value: "recria", label: "Recría" },
+  { value: "reproduccion", label: "Reproducción" },
+]
 
 function csvAChunks(texto: string): { chunks: string[]; totalFilas: number } {
   const lineas = texto.split("\n")
@@ -35,11 +48,54 @@ export function ImportacionCSV({ onClose }: Props) {
   const [resultado, setResultado] = useState<ImportacionRead | null>(null)
   const [progreso, setProgreso] = useState<ProgresoChunk | null>(null)
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null)
+
+  const [modoLote, setModoLote] = useState<ModoLote>("ninguno")
+  const [loteExistenteId, setLoteExistenteId] = useState("")
+  const [nuevoLoteNombre, setNuevoLoteNombre] = useState("")
+  const [nuevoLoteProposito, setNuevoLoteProposito] = useState("invernada")
+  const [nuevoLoteFecha, setNuevoLoteFecha] = useState(() => new Date().toISOString().split("T")[0])
+  const [loteAsignado, setLoteAsignado] = useState<string | undefined>(undefined)
+
   const importar = useImportarCSV()
+  const crearLote = useCreateLote()
+  const { data: lotesData } = useLotes("activo")
+
+  const resolverLoteId = async (): Promise<{ loteId: string | undefined; ok: boolean }> => {
+    if (modoLote === "ninguno") return { loteId: undefined, ok: true }
+
+    if (modoLote === "existente") {
+      if (!loteExistenteId) {
+        setErrorGeneral("Seleccioná un lote o elegí 'Sin lote'")
+        return { loteId: undefined, ok: false }
+      }
+      return { loteId: loteExistenteId, ok: true }
+    }
+
+    // nuevo
+    if (!nuevoLoteNombre.trim()) {
+      setErrorGeneral("El nombre del lote es obligatorio")
+      return { loteId: undefined, ok: false }
+    }
+    try {
+      const lote = await crearLote.mutateAsync({
+        nombre: nuevoLoteNombre.trim(),
+        proposito: nuevoLoteProposito,
+        fecha_formacion: nuevoLoteFecha,
+      })
+      return { loteId: lote.id, ok: true }
+    } catch (e) {
+      setErrorGeneral(getApiError(e as Error))
+      return { loteId: undefined, ok: false }
+    }
+  }
 
   const procesarArchivo = async (file: File) => {
     setErrorGeneral(null)
     setResultado(null)
+    setLoteAsignado(undefined)
+
+    const { loteId, ok } = await resolverLoteId()
+    if (!ok) return
 
     const texto = await file.text()
     const { chunks, totalFilas } = csvAChunks(texto)
@@ -49,22 +105,20 @@ export function ImportacionCSV({ onClose }: Props) {
       return
     }
 
-    // Archivo chico: subida directa sin progreso por chunks
     if (chunks.length === 1) {
       try {
-        const data = await importar.mutateAsync(file)
+        const data = await importar.mutateAsync({ archivo: file, loteId })
+        setLoteAsignado(loteId)
         setResultado(data)
-      } catch (e) {
+      } catch (_e) {
         // error mostrado via importar.error
       }
       return
     }
 
-    // Archivo grande: subir en chunks y mostrar progreso real
     let filasProcesadas = 0
     let filasExitosas = 0
     let erroresAcumulados: ErrorFila[] = []
-    let estado = "completado"
 
     for (let i = 0; i < chunks.length; i++) {
       setProgreso({
@@ -81,14 +135,11 @@ export function ImportacionCSV({ onClose }: Props) {
       )
 
       try {
-        const res = await importar.mutateAsync(chunkFile)
+        const res = await importar.mutateAsync({ archivo: chunkFile, loteId })
         filasProcesadas += res.total_filas ?? 0
         filasExitosas += res.filas_exitosas ?? 0
 
         if (res.reporte_errores) {
-          // Ajustar números de fila al contexto del archivo original
-          // El backend reporta fila 2..N (fila 1 = header). El chunk i
-          // empieza en la fila original 2 + i*CHUNK_SIZE.
           const offset = i * CHUNK_SIZE
           erroresAcumulados.push(
             ...res.reporte_errores.map(e => ({ ...e, fila: e.fila + offset }))
@@ -101,11 +152,12 @@ export function ImportacionCSV({ onClose }: Props) {
       }
     }
 
-    if (erroresAcumulados.length > 0) {
-      estado = filasExitosas > 0 ? "completado_con_errores" : "fallido"
-    }
+    const estado = erroresAcumulados.length > 0
+      ? (filasExitosas > 0 ? "completado_con_errores" : "fallido")
+      : "completado"
 
     setProgreso(null)
+    setLoteAsignado(loteId)
     setResultado({
       id: "combined",
       nombre_archivo: file.name,
@@ -144,6 +196,10 @@ export function ImportacionCSV({ onClose }: Props) {
     URL.revokeObjectURL(url)
   }
 
+  const loteAsignadoNombre = loteAsignado
+    ? (lotesData?.items.find(l => l.id === loteAsignado)?.nombre ?? (nuevoLoteNombre || "lote"))
+    : undefined
+
   // ── Vista: resultado ──────────────────────────────────────────────────────
   if (resultado) {
     const ok = resultado.estado === "completado"
@@ -162,6 +218,11 @@ export function ImportacionCSV({ onClose }: Props) {
             <p className="text-sm text-muted-foreground">
               {resultado.filas_exitosas} importados · {resultado.filas_con_error} con error · {resultado.total_filas} total
             </p>
+            {loteAsignadoNombre && (
+              <p className="text-sm text-muted-foreground">
+                Asignados al lote: <span className="font-medium text-foreground">{loteAsignadoNombre}</span>
+              </p>
+            )}
           </div>
         </div>
 
@@ -221,36 +282,129 @@ export function ImportacionCSV({ onClose }: Props) {
 
   // ── Vista: upload inicial ─────────────────────────────────────────────────
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Descargá la plantilla, completá los datos y subí el CSV. Los errores se muestran fila por fila con mensajes descriptivos.
-      </p>
-
-      <Button variant="outline" onClick={descargarPlantilla} className="w-full">
-        <Download className="h-4 w-4 mr-2" />
-        Descargar plantilla CSV
-      </Button>
-
-      {importar.isPending && !progreso ? (
-        <div className="space-y-2">
-          <p className="text-sm text-center text-muted-foreground">Procesando...</p>
-          <Progress value={undefined} className="animate-pulse" />
+    <div className="space-y-5">
+      {/* Sección lote */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Lote <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+        <div className="flex rounded-md border overflow-hidden text-sm">
+          {(["ninguno", "existente", "nuevo"] as ModoLote[]).map((modo) => {
+            const labels: Record<ModoLote, string> = {
+              ninguno: "Sin lote",
+              existente: "Lote existente",
+              nuevo: "Lote nuevo",
+            }
+            return (
+              <button
+                key={modo}
+                type="button"
+                onClick={() => setModoLote(modo)}
+                className={[
+                  "flex-1 px-3 py-2 transition-colors",
+                  modoLote === modo
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "bg-background hover:bg-muted text-muted-foreground",
+                  modo !== "ninguno" ? "border-l" : "",
+                ].join(" ")}
+              >
+                {labels[modo]}
+              </button>
+            )
+          })}
         </div>
-      ) : (
-        <div
-          className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 cursor-pointer hover:border-primary/50 transition-colors"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-          <p className="text-sm font-medium">Subir archivo CSV</p>
-          <p className="text-xs text-muted-foreground">Hacé clic o arrastrá el archivo aquí</p>
-          <input ref={inputRef} type="file" accept=".csv" className="hidden" onChange={handleFile} />
-        </div>
-      )}
 
-      {(errorGeneral || importar.error) && (
-        <Alert variant="destructive">{errorGeneral ?? getApiError(importar.error!)}</Alert>
-      )}
+        {modoLote === "existente" && (
+          <Select value={loteExistenteId} onValueChange={setLoteExistenteId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Seleccioná un lote..." />
+            </SelectTrigger>
+            <SelectContent>
+              {lotesData?.items.map(l => (
+                <SelectItem key={l.id} value={l.id}>
+                  {l.nombre} <span className="text-muted-foreground capitalize ml-1">· {l.proposito}</span>
+                </SelectItem>
+              ))}
+              {!lotesData?.items.length && (
+                <div className="px-3 py-2 text-sm text-muted-foreground">No hay lotes activos</div>
+              )}
+            </SelectContent>
+          </Select>
+        )}
+
+        {modoLote === "nuevo" && (
+          <div className="space-y-3 p-3 rounded-md border bg-muted/30">
+            <div className="space-y-1.5">
+              <Label htmlFor="lote-nombre" className="text-xs">Nombre del lote</Label>
+              <Input
+                id="lote-nombre"
+                placeholder="Ej: Compra julio 2026"
+                value={nuevoLoteNombre}
+                onChange={e => setNuevoLoteNombre(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor="lote-proposito" className="text-xs">Propósito</Label>
+                <Select value={nuevoLoteProposito} onValueChange={setNuevoLoteProposito}>
+                  <SelectTrigger id="lote-proposito">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROPOSITOS.map(p => (
+                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <Label htmlFor="lote-fecha" className="text-xs">Fecha de formación</Label>
+                <Input
+                  id="lote-fecha"
+                  type="date"
+                  value={nuevoLoteFecha}
+                  onChange={e => setNuevoLoteFecha(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="border-t" />
+
+      {/* Sección archivo */}
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Descargá la plantilla, completá los datos y subí el CSV. Los errores se muestran fila por fila con mensajes descriptivos.
+        </p>
+
+        <Button variant="outline" onClick={descargarPlantilla} className="w-full">
+          <Download className="h-4 w-4 mr-2" />
+          Descargar plantilla CSV
+        </Button>
+
+        {importar.isPending || crearLote.isPending ? (
+          <div className="space-y-2">
+            <p className="text-sm text-center text-muted-foreground">
+              {crearLote.isPending ? "Creando lote..." : "Procesando..."}
+            </p>
+            <Progress value={undefined} className="animate-pulse" />
+          </div>
+        ) : (
+          <div
+            className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-8 cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => inputRef.current?.click()}
+          >
+            <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+            <p className="text-sm font-medium">Subir archivo CSV</p>
+            <p className="text-xs text-muted-foreground">Hacé clic o arrastrá el archivo aquí</p>
+            <input ref={inputRef} type="file" accept=".csv" className="hidden" onChange={handleFile} />
+          </div>
+        )}
+
+        {(errorGeneral || importar.error) && (
+          <Alert variant="destructive">{errorGeneral ?? getApiError(importar.error!)}</Alert>
+        )}
+      </div>
 
       <div className="flex justify-end">
         <Button variant="outline" onClick={onClose}>Cancelar</Button>

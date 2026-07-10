@@ -107,15 +107,19 @@ export function useCambiarCategoria(id: string) {
 export function useImportarCSV() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (archivo: File) => {
+    mutationFn: async ({ archivo, loteId }: { archivo: File; loteId?: string }) => {
       const form = new FormData()
       form.append("archivo", archivo)
+      if (loteId) form.append("lote_id", loteId)
       const { data } = await api.post<ImportacionRead>("/api/v1/importaciones", form, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["animales"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["animales"] })
+      qc.invalidateQueries({ queryKey: ["lotes"] })
+    },
   })
 }
 

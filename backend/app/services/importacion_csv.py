@@ -3,12 +3,14 @@ import io
 import uuid
 from datetime import date, datetime, timezone
 
+from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.animales import Animal, AnimalCategoria
 from app.models.importaciones import Importacion
+from app.models.lotes import Lote
 from app.models.potreros import Potrero
 from app.schemas.animales import CATEGORIAS_VALIDAS
 
@@ -97,7 +99,18 @@ async def procesar(
     user_id: uuid.UUID,
     contenido: str,
     nombre_archivo: str,
+    lote_id: uuid.UUID | None = None,
 ) -> Importacion:
+    if lote_id is not None:
+        result = await db.execute(
+            select(Lote).where(Lote.id == lote_id, Lote.establecimiento_id == establecimiento_id)
+        )
+        lote = result.scalar_one_or_none()
+        if not lote:
+            raise HTTPException(status_code=404, detail="Lote no encontrado")
+        if lote.estado == "cerrado":
+            raise HTTPException(status_code=400, detail="No se pueden importar animales a un lote cerrado")
+
     reader = csv.DictReader(io.StringIO(contenido))
     filas = list(reader)
 
@@ -141,6 +154,7 @@ async def procesar(
                     raza=datos_limpios["raza"],
                     fecha_nacimiento=datos_limpios["fecha_nacimiento"],
                     potrero_actual_id=potrero_id,
+                    lote_actual_id=lote_id,
                 )
                 db.add(animal)
                 await db.flush()

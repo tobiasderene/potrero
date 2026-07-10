@@ -1,7 +1,7 @@
 import io
 import uuid
 
-from fastapi import APIRouter, Depends, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,11 +24,16 @@ async def descargar_plantilla():
 @router.post("", response_model=ImportacionRead, status_code=status.HTTP_201_CREATED)
 async def importar_csv(
     archivo: UploadFile = File(...),
+    lote_id: uuid.UUID | None = Form(default=None),
     user_id: uuid.UUID = Depends(get_current_user_id),
     establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
     db: AsyncSession = Depends(get_db),
 ) -> ImportacionRead:
     contenido = await archivo.read()
     texto = contenido.decode("utf-8-sig")
-    importacion = await svc.procesar(db, establecimiento_id, user_id, texto, archivo.filename or "importacion.csv")
+    importacion = await svc.procesar(
+        db, establecimiento_id, user_id, texto,
+        archivo.filename or "importacion.csv",
+        lote_id,
+    )
     return ImportacionRead.model_validate(importacion)
