@@ -19,7 +19,8 @@ import uuid
 from datetime import date, datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import select, text
+from sqlalchemy import ARRAY, bindparam, select, text
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -70,13 +71,12 @@ async def _check_carencia_activa(
 ) -> list[CarenciaInfo]:
     if not animal_ids:
         return []
-    array_literal = "{" + ",".join(str(aid) for aid in animal_ids) + "}"
     result = await db.execute(
         text(
             "SELECT animal_id, fecha_fin_carencia, medicamento "
-            "FROM animales_con_carencia_activa(CAST(:ids AS UUID[]))"
-        ),
-        {"ids": array_literal},
+            "FROM animales_con_carencia_activa(:ids)"
+        ).bindparams(bindparam("ids", type_=ARRAY(PGUUID(as_uuid=True)))),
+        {"ids": list(animal_ids)},
     )
     return [
         CarenciaInfo(
