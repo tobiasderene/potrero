@@ -47,7 +47,8 @@ export interface NacimientoPayload {
 
 export interface TrasladoPayload {
   fecha_evento: string
-  animal_ids: string[]
+  animal_ids?: string[]
+  lote_id?: string
   potrero_destino_id: string
   observaciones?: string | null
 }

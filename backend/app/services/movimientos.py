@@ -293,7 +293,21 @@ async def registrar_traslado(
     if data.fecha_evento > today:
         raise HTTPException(status_code=400, detail="RN-18: la fecha del evento no puede ser futura")
 
-    animales = await _check_animales_activos(db, data.animal_ids, establecimiento_id)
+    if data.lote_id is not None:
+        res = await db.execute(
+            select(Animal.id).where(
+                Animal.lote_actual_id == data.lote_id,
+                Animal.establecimiento_id == establecimiento_id,
+                Animal.estado == "activo",
+            )
+        )
+        animal_ids: list[uuid.UUID] = list(res.scalars().all())
+        if not animal_ids:
+            raise HTTPException(status_code=400, detail="El lote no tiene animales activos para trasladar")
+    else:
+        animal_ids = data.animal_ids  # type: ignore[assignment]
+
+    animales = await _check_animales_activos(db, animal_ids, establecimiento_id)
 
     advertencias: list[str] = []
     carga = await _calcular_carga_potrero(db, data.potrero_destino_id, establecimiento_id)
@@ -316,7 +330,7 @@ async def registrar_traslado(
     evento = await crud_ev.create_evento(
         db, establecimiento_id, "movimiento", data.fecha_evento, user_id, data.observaciones
     )
-    await crud_ev.create_eventos_animales(db, evento.id, data.animal_ids)
+    await crud_ev.create_eventos_animales(db, evento.id, animal_ids)
     em = await crud_ev.create_evento_movimiento(
         db,
         evento.id,
@@ -326,7 +340,7 @@ async def registrar_traslado(
     )
 
     await db.commit()
-    return _build_read(evento, em, data.animal_ids, advertencias)
+    return _build_read(evento, em, animal_ids, advertencias)
 
 
 async def registrar_egreso_venta(

@@ -3,7 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 TIPOS_MOVIMIENTO = ("ingreso_compra", "nacimiento", "traslado_interno", "egreso_venta", "egreso_faena", "egreso_muerte")
 DESTINOS_VENTA = ("frigorifico", "remate", "venta_directa")
@@ -58,9 +58,18 @@ class NacimientoInput(BaseModel):
 
 class TrasladoInternoInput(BaseModel):
     fecha_evento: date
-    animal_ids: list[uuid.UUID] = Field(min_length=1)
+    animal_ids: list[uuid.UUID] | None = Field(default=None, min_length=1)
+    lote_id: uuid.UUID | None = None
     potrero_destino_id: uuid.UUID
     observaciones: str | None = None
+
+    @model_validator(mode="after")
+    def _validar_origen(self) -> "TrasladoInternoInput":
+        if not self.animal_ids and not self.lote_id:
+            raise ValueError("Debe especificar animal_ids o lote_id")
+        if self.animal_ids and self.lote_id:
+            raise ValueError("No puede especificar animal_ids y lote_id simultáneamente")
+        return self
 
 
 class EgresoVentaInput(BaseModel):
