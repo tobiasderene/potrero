@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { api, getApiError } from "@/lib/api/client"
-import type { GdpAnimalRead, GdpLoteRead, PesajeRead, VariacionGdpRead } from "@/types/api"
+import type { GdpAnimalRead, GdpLoteRead, GdpPotreroRead, PesajeRead, VariacionGdpRead } from "@/types/api"
 
 export interface PesajeIndividualPayload {
   fecha_evento: string
@@ -110,6 +110,17 @@ export function useVariacionGdp(animalId: string) {
       return data
     },
     enabled: !!animalId,
+  })
+}
+
+export function useGdpPotrero(potreroId: string) {
+  return useQuery({
+    queryKey: ["gdp", "potrero", potreroId],
+    queryFn: async () => {
+      const { data } = await api.get<GdpPotreroRead>(`/api/v1/pesajes/potrero/${potreroId}/gdp`)
+      return data
+    },
+    enabled: !!potreroId,
   })
 }
 

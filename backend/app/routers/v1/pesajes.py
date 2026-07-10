@@ -7,6 +7,7 @@ from app.core.deps import get_current_user_id, get_establecimiento_id, get_db
 from app.schemas.pesajes import (
     GdpAnimalRead,
     GdpLoteRead,
+    GdpPotreroRead,
     PesajeIndividualInput,
     PesajeLoteInput,
     PesajeRead,
@@ -70,6 +71,15 @@ async def gdp_lote(
     db: AsyncSession = Depends(get_db),
 ) -> GdpLoteRead:
     return await svc.calcular_gdp_lote(db, lote_id, establecimiento_id)
+
+
+@router.get("/potrero/{potrero_id}/gdp", response_model=GdpPotreroRead)
+async def gdp_potrero(
+    potrero_id: uuid.UUID,
+    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
+    db: AsyncSession = Depends(get_db),
+) -> GdpPotreroRead:
+    return await svc.calcular_gdp_potrero(db, potrero_id, establecimiento_id)
 
 
 @router.patch(

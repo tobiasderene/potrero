@@ -13,6 +13,7 @@ from app.models.lotes import Lote
 from app.schemas.pesajes import (
     GdpAnimalRead,
     GdpLoteRead,
+    GdpPotreroRead,
     PesajeIndividualInput,
     PesajeLoteInput,
     PesajeRead,
@@ -225,6 +226,61 @@ async def calcular_gdp_lote(
         gdp_maximo_g_dia=max(gdp_values),
         total_animales_con_gdp=len(gdp_values),
         total_animales_lote=total_animales,
+        estado=estado,
+    )
+
+
+async def calcular_gdp_potrero(
+    db: AsyncSession,
+    potrero_id: uuid.UUID,
+    establecimiento_id: uuid.UUID,
+) -> GdpPotreroRead:
+    from app.models.potreros import Potrero
+    potrero = await db.get(Potrero, potrero_id)
+    if not potrero or potrero.establecimiento_id != establecimiento_id:
+        raise HTTPException(status_code=404, detail="Potrero no encontrado")
+
+    animal_ids = await crud_p.get_animales_potrero_activos(db, potrero_id)
+    total_animales = len(animal_ids)
+
+    if total_animales == 0:
+        return GdpPotreroRead(
+            potrero_id=potrero_id,
+            gdp_promedio_g_dia=None,
+            gdp_minimo_g_dia=None,
+            gdp_maximo_g_dia=None,
+            total_animales_con_gdp=0,
+            total_animales_potrero=0,
+            estado="sin_dato_suficiente",
+        )
+
+    gdp_values: list[Decimal] = []
+    for aid in animal_ids:
+        gdp, _, _ = await crud_p.calcular_gdp_db(db, aid)
+        if gdp is not None:
+            gdp_values.append(gdp)
+
+    if not gdp_values:
+        return GdpPotreroRead(
+            potrero_id=potrero_id,
+            gdp_promedio_g_dia=None,
+            gdp_minimo_g_dia=None,
+            gdp_maximo_g_dia=None,
+            total_animales_con_gdp=0,
+            total_animales_potrero=total_animales,
+            estado="sin_dato_suficiente",
+        )
+
+    promedio = sum(gdp_values) / len(gdp_values)
+    estado = "completo" if len(gdp_values) == total_animales else "parcial"
+
+    return GdpPotreroRead(
+        potrero_id=potrero_id,
+        gdp_promedio_g_dia=round(promedio, 2),
+        gdp_minimo_g_dia=min(gdp_values),
+        gdp_maximo_g_dia=max(gdp_values),
+        total_animales_con_gdp=len(gdp_values),
+        total_animales_potrero=total_animales,
         estado=estado,
     )
 

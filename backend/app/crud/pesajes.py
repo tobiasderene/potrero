@@ -163,3 +163,17 @@ async def get_animales_lote_activos(
         )
     )
     return [row.id for row in result]
+
+
+async def get_animales_potrero_activos(
+    db: AsyncSession,
+    potrero_id: uuid.UUID,
+) -> list[uuid.UUID]:
+    from app.models.animales import Animal
+    result = await db.execute(
+        select(Animal.id).where(
+            Animal.potrero_actual_id == potrero_id,
+            Animal.estado == "activo",
+        )
+    )
+    return [row.id for row in result]

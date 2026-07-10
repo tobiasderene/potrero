@@ -165,6 +165,16 @@ export interface GdpLoteRead {
   estado: "completo" | "parcial" | "sin_dato_suficiente"
 }
 
+export interface GdpPotreroRead {
+  potrero_id: string
+  gdp_promedio_g_dia: string | null
+  gdp_minimo_g_dia: string | null
+  gdp_maximo_g_dia: string | null
+  total_animales_con_gdp: number
+  total_animales_potrero: number
+  estado: "completo" | "parcial" | "sin_dato_suficiente"
+}
+
 export interface VariacionGdpRead {
   animal_id: string
   gdp_animal_g_dia: string | null

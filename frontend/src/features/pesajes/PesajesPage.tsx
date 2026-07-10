@@ -6,8 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PesajeIndividualForm } from "./components/PesajeIndividualForm"
 import { PesajeLoteForm } from "./components/PesajeLoteForm"
 import { GdpLoteCard } from "./components/GdpLoteCard"
+import { GdpPotreroCard } from "./components/GdpPotreroCard"
 import { PesajesHistorial } from "./components/PesajesHistorial"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
+import { usePotreros } from "@/features/potreros/hooks/usePotreros"
 import { usePesajesLote, useAnularPesaje } from "./hooks/usePesajes"
 import { AnimalSearchSelect } from "./components/AnimalSearchSelect"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -19,10 +21,13 @@ export function PesajesPage() {
   const [showLote, setShowLote] = useState(false)
   const [animalSeleccionado, setAnimalSeleccionado] = useState<AnimalRead | null>(null)
   const [loteGdpId, setLoteGdpId] = useState("")
+  const [potreroGdpId, setPotreroGdpId] = useState("")
   const [lastResult, setLastResult] = useState<string | null>(null)
 
   const { data: lotesData } = useLotes("activo")
   const lotes = lotesData?.items ?? []
+  const { data: potrerosData } = usePotreros("activo")
+  const potreros = potrerosData?.items ?? []
 
   const { data: pesajesLote } = usePesajesLote(loteGdpId)
   const { mutate: anular, isPending: anulando } = useAnularPesaje()
@@ -58,6 +63,7 @@ export function PesajesPage() {
       <Tabs defaultValue="gdp-lote">
         <TabsList>
           <TabsTrigger value="gdp-lote">GDP por Lote</TabsTrigger>
+          <TabsTrigger value="gdp-potrero">GDP por Potrero</TabsTrigger>
         </TabsList>
 
         <TabsContent value="gdp-lote" className="space-y-4 pt-4">
@@ -88,6 +94,28 @@ export function PesajesPage() {
               anular={anular}
               anulando={anulando}
             />
+          )}
+        </TabsContent>
+
+        <TabsContent value="gdp-potrero" className="space-y-4 pt-4">
+          <div className="space-y-1.5 max-w-xs">
+            <Label>Seleccionar potrero para ver GDP</Label>
+            <Select value={potreroGdpId} onValueChange={setPotreroGdpId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar potrero..." />
+              </SelectTrigger>
+              <SelectContent>
+                {potreros.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.nombre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {potreroGdpId && (
+            <GdpPotreroCard potreroId={potreroGdpId} />
           )}
         </TabsContent>
       </Tabs>

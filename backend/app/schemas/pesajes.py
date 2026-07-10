@@ -55,6 +55,16 @@ class GdpLoteRead(BaseModel):
     estado: Literal["completo", "parcial", "sin_dato_suficiente"]
 
 
+class GdpPotreroRead(BaseModel):
+    potrero_id: uuid.UUID
+    gdp_promedio_g_dia: Decimal | None
+    gdp_minimo_g_dia: Decimal | None
+    gdp_maximo_g_dia: Decimal | None
+    total_animales_con_gdp: int
+    total_animales_potrero: int
+    estado: Literal["completo", "parcial", "sin_dato_suficiente"]
+
+
 class VariacionGdpRead(BaseModel):
     animal_id: uuid.UUID
     gdp_animal_g_dia: Decimal | None
