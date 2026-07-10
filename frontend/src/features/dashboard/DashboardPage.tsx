@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
-import { MapPin } from "lucide-react"
+import { Loader2, MapPin } from "lucide-react"
 import { useTorreControl } from "./hooks/useTorreControl"
+import { useGdpPotrero } from "@/features/pesajes/hooks/usePesajes"
 import { PotreroPanelPrincipal } from "./components/PotreroPanelPrincipal"
 import { ListaPotreros } from "./components/ListaPotreros"
 
@@ -46,6 +47,10 @@ export function DashboardPage() {
 
   const selected = potreros.find(p => p.potrero.id === selectedId) ?? null
 
+  // GDP se carga aquí para poder esperar que esté listo antes de mostrar el panel
+  const gdpQ = useGdpPotrero(selectedId ?? "")
+  const isPanelLoading = isLoading || (!!selectedId && gdpQ.isLoading)
+
   if (isEmpty) {
     return (
       <div className="flex h-full items-center justify-center p-12 text-center">
@@ -72,10 +77,15 @@ export function DashboardPage() {
       <div className="flex-1 min-w-0">
         {isLoading && !selected ? (
           <LoadingSkeleton />
+        ) : isPanelLoading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
         ) : selected ? (
           <PotreroPanelPrincipal
             key={selectedId!}
             potrero={selected}
+            gdp={gdpQ.data}
             lastMovements={dashboard?.ultimos_movimientos ?? []}
           />
         ) : null}

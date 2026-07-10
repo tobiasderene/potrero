@@ -16,12 +16,12 @@ import {
   Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useGdpPotrero } from "@/features/pesajes/hooks/usePesajes"
 import type { PotreroEnriquecido } from "../hooks/useTorreControl"
-import type { AlertaRead, MovimientoResumenRead } from "@/types/api"
+import type { AlertaRead, GdpPotreroRead, MovimientoResumenRead } from "@/types/api"
 
 interface Props {
   potrero: PotreroEnriquecido
+  gdp: GdpPotreroRead | undefined
   lastMovements: MovimientoResumenRead[]
 }
 
@@ -168,12 +168,10 @@ function ActionBtn({
 
 // ── Main ───────────────────────────────────────────────────────
 
-export function PotreroPanelPrincipal({ potrero: enriched, lastMovements }: Props) {
+export function PotreroPanelPrincipal({ potrero: enriched, gdp, lastMovements }: Props) {
   const { potrero, carga, lotes, alertas, estado } = enriched
   const cfg = ESTADO_CFG[estado]
   const StateIcon = cfg.icon
-
-  const { data: gdp, isLoading: gdpLoading } = useGdpPotrero(potrero.id)
 
   // Buscar el movimiento más reciente que involucre este potrero o sus lotes
   const loteNames = new Set(lotes.map(l => l.nombre))
@@ -188,10 +186,8 @@ export function PotreroPanelPrincipal({ potrero: enriched, lastMovements }: Prop
     ocupNum != null && ocupNum > 90  ? "amber" :
     undefined
 
-  const gdpValue = gdpLoading ? null : fmtFloat(gdp?.gdp_promedio_g_dia ?? null)
-  const gdpSub = gdpLoading
-    ? "Calculando..."
-    : gdp?.total_animales_con_gdp
+  const gdpValue = fmtFloat(gdp?.gdp_promedio_g_dia ?? null)
+  const gdpSub = gdp?.total_animales_con_gdp
     ? `${gdp.total_animales_con_gdp} / ${gdp.total_animales_potrero} animales`
     : gdp?.estado === "sin_dato_suficiente"
     ? "Sin pesajes suficientes"
