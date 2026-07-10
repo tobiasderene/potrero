@@ -261,6 +261,24 @@ async def calcular_gdp_potrero(
             gdp_values.append(gdp)
 
     if not gdp_values:
+        # Fallback: pesajes lote_estimado de los lotes presentes en el potrero
+        lote_ids = await crud_p.get_lotes_potrero_activos(db, potrero_id)
+        gdp_lote_vals: list[Decimal] = []
+        for lote_id in lote_ids:
+            gdp_est, _ = await crud_p.calcular_gdp_lote_estimado(db, lote_id)
+            if gdp_est is not None:
+                gdp_lote_vals.append(gdp_est)
+        if gdp_lote_vals:
+            promedio_est = sum(gdp_lote_vals) / len(gdp_lote_vals)
+            return GdpPotreroRead(
+                potrero_id=potrero_id,
+                gdp_promedio_g_dia=round(promedio_est, 2),
+                gdp_minimo_g_dia=None,
+                gdp_maximo_g_dia=None,
+                total_animales_con_gdp=0,
+                total_animales_potrero=total_animales,
+                estado="parcial",
+            )
         return GdpPotreroRead(
             potrero_id=potrero_id,
             gdp_promedio_g_dia=None,
