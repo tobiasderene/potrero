@@ -19,7 +19,7 @@ import uuid
 from datetime import date, datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import ARRAY, bindparam, select, text
+from sqlalchemy import ARRAY, bindparam, func, select, text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -339,6 +339,10 @@ async def registrar_traslado(
         potrero_destino_id=data.potrero_destino_id,
     )
 
+    await _actualizar_potrero_lotes(
+        db, animales, data.potrero_destino_id, establecimiento_id, data.lote_id
+    )
+
     await db.commit()
     return _build_read(evento, em, animal_ids, advertencias)
 
@@ -448,6 +452,49 @@ async def registrar_egreso_muerte(
 
     await db.commit()
     return _build_read(evento, em, [data.animal_id])
+
+
+async def _actualizar_potrero_lotes(
+    db: AsyncSession,
+    animales: list[Animal],
+    potrero_destino_id: uuid.UUID,
+    establecimiento_id: uuid.UUID,
+    lote_id_directo: uuid.UUID | None,
+) -> None:
+    """
+    Sincroniza lotes.potrero_principal_id cuando un traslado completo mueve
+    todos los animales activos de un lote a otro potrero.
+
+    - Si se trasladó por lote_id (lote completo), actualiza siempre.
+    - Si se trasladó por animal_ids, actualiza solo los lotes donde la totalidad
+      de animales activos esté incluida en el grupo trasladado.
+    """
+    from app.models.lotes import Lote
+
+    if lote_id_directo is not None:
+        lote = await db.get(Lote, lote_id_directo)
+        if lote and lote.establecimiento_id == establecimiento_id:
+            lote.potrero_principal_id = potrero_destino_id
+        return
+
+    lotes_afectados = {a.lote_actual_id for a in animales if a.lote_actual_id}
+    if not lotes_afectados:
+        return
+
+    ids_trasladados = {a.id for a in animales}
+    for lote_id in lotes_afectados:
+        total_res = await db.execute(
+            select(func.count(Animal.id)).where(
+                Animal.lote_actual_id == lote_id,
+                Animal.estado == "activo",
+            )
+        )
+        total_en_lote = total_res.scalar_one()
+        en_traslado = sum(1 for a in animales if a.lote_actual_id == lote_id)
+        if total_en_lote == en_traslado:
+            lote = await db.get(Lote, lote_id)
+            if lote and lote.establecimiento_id == establecimiento_id:
+                lote.potrero_principal_id = potrero_destino_id
 
 
 async def _calcular_carga_potrero(
