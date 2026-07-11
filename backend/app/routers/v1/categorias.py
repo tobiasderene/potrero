@@ -31,5 +31,4 @@ async def actualizar_coeficiente_ug(
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
     categoria = await crud.update_coeficiente(db, categoria, data.coeficiente_ug)
     await db.commit()
-    await db.refresh(categoria)
     return CategoriaRead.model_validate(categoria)

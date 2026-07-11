@@ -35,8 +35,6 @@ async def crear_establecimiento(
     )
     await crud_cat.seed_para_establecimiento(db, establecimiento.id)
     await db.commit()
-    await db.refresh(establecimiento)
-    await db.refresh(ue)
     return establecimiento, ue
 
 
@@ -50,5 +48,4 @@ async def actualizar_establecimiento(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No encontrado")
     est = await crud_est.update(db, est, data)
     await db.commit()
-    await db.refresh(est)
     return est

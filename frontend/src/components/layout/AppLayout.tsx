@@ -1,18 +1,45 @@
 import { NavLink, Outlet } from "react-router-dom"
-import { LayoutDashboard, LogOut } from "lucide-react"
+import {
+  ArrowLeftRight,
+  Calendar,
+  FileText,
+  LayoutDashboard,
+  Layers,
+  LogOut,
+  MapPin,
+  PawPrint,
+  Scale,
+  Stethoscope,
+  Weight,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useAuth } from "@/features/auth/AuthContext"
 import { useMe } from "@/hooks/useMe"
+import { usePermissions } from "@/hooks/usePermissions"
 import { cn } from "@/lib/utils"
 
-const NAV = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+const ALL_NAV = [
+  { to: "/dashboard",           icon: LayoutDashboard, label: "Dashboard",       roles: ["propietario", "administrador", "veterinario"] },
+  { to: "/movimientos",         icon: ArrowLeftRight,  label: "Movimientos",     roles: ["administrador"] },
+  { to: "/animales",            icon: PawPrint,        label: "Animales",        roles: ["propietario", "administrador"] },
+  { to: "/lotes",               icon: Layers,          label: "Lotes",           roles: ["propietario", "administrador"] },
+  { to: "/pesajes",             icon: Weight,          label: "Pesajes",         roles: ["administrador"] },
+  { to: "/sanidad",             icon: Stethoscope,     label: "Sanidad",         roles: ["propietario", "administrador", "veterinario"] },
+  { to: "/sanidad/calendario",  icon: Calendar,        label: "Calendario San.", roles: ["propietario", "administrador", "veterinario"] },
+  { to: "/potreros",            icon: MapPin,          label: "Potreros",        roles: ["propietario", "administrador"] },
+  { to: "/categorias",          icon: Scale,           label: "Categorías UG",   roles: ["administrador"] },
+  { to: "/reportes",            icon: FileText,        label: "Reportes",        roles: ["propietario", "administrador"] },
 ]
 
 export function AppLayout() {
   const { signOut } = useAuth()
   const { data: me } = useMe()
+  const { rol } = usePermissions()
+
+  const nav = rol
+    ? ALL_NAV.filter((n) => n.roles.includes(rol))
+    : ALL_NAV
 
   return (
     <div className="flex min-h-screen">
@@ -29,13 +56,16 @@ export function AppLayout() {
             <p className="text-xs text-muted-foreground truncate">
               {me.email}
             </p>
+            {rol && rol !== "administrador" && (
+              <p className="text-[10px] text-muted-foreground mt-0.5 capitalize">{rol}</p>
+            )}
           </div>
         )}
 
         <Separator />
 
         <nav className="flex-1 space-y-1 p-2 mt-2">
-          {NAV.map(({ to, icon: Icon, label }) => (
+          {nav.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}

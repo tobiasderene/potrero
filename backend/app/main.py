@@ -6,7 +6,7 @@ from app.routers.v1 import router as api_v1
 
 app = FastAPI(
     title="Novillo — Sistema de Gestión Ganadera",
-    version="0.1.0",
+    version="0.5.0",
     docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
     redoc_url=None,
 )
