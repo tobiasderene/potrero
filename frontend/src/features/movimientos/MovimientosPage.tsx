@@ -1,5 +1,5 @@
-import { useState, type ComponentType } from "react"
-import { ArrowLeftRight, CheckCircle2, DollarSign, Layers, MinusCircle, PlusCircle, Sparkles } from "lucide-react"
+import { useState } from "react"
+import { CheckCircle2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -29,14 +29,13 @@ const TIPOS: {
   value: TipoMovimiento
   label: string
   description: string
-  icon: ComponentType<{ className?: string }>
 }[] = [
-  { value: "ingreso_compra", label: "Ingreso por compra",  description: "Registrar animales comprados externamente",             icon: PlusCircle    },
-  { value: "nacimiento",     label: "Nacimiento",          description: "Registrar cría nacida en el establecimiento",           icon: Sparkles      },
-  { value: "traslado",       label: "Traslado interno",    description: "Mover animales entre potreros",                         icon: ArrowLeftRight },
-  { value: "asignacion_lote",label: "Asignación a lote",   description: "Agregar animales existentes a un lote activo",          icon: Layers        },
-  { value: "egreso_venta",   label: "Egreso por venta",    description: "Registrar venta (requiere caravana SENACSA)",           icon: DollarSign    },
-  { value: "egreso_muerte",  label: "Egreso por muerte",   description: "Registrar baja por muerte",                             icon: MinusCircle   },
+  { value: "ingreso_compra",  label: "Ingreso por compra",  description: "Registrar animales comprados externamente"   },
+  { value: "nacimiento",      label: "Nacimiento",          description: "Registrar cría nacida en el establecimiento" },
+  { value: "traslado",        label: "Traslado interno",    description: "Mover animales entre potreros"               },
+  { value: "asignacion_lote", label: "Asignación a lote",   description: "Agregar animales existentes a un lote activo"},
+  { value: "egreso_venta",    label: "Egreso por venta",    description: "Registrar venta (requiere caravana SENACSA)" },
+  { value: "egreso_muerte",   label: "Egreso por muerte",   description: "Registrar baja por muerte"                   },
 ]
 
 const MOV_LABEL: Record<string, string> = {
@@ -191,23 +190,19 @@ export function MovimientosPage() {
     <div className="flex min-h-[calc(100vh-3rem)]">
 
       {/* Sidebar izquierdo */}
-      <aside className="w-52 shrink-0 border-r border-border p-3 pt-5">
-        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Tipo de movimiento
-        </p>
+      <aside className="w-44 shrink-0 border-r border-border px-3 pt-6">
         <nav className="space-y-0.5">
-          {TIPOS.map(({ value, label, icon: Icon }) => (
+          {TIPOS.map(({ value, label }) => (
             <button
               key={value}
               onClick={() => seleccionar(value)}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 text-left",
+                "w-full text-left px-3 py-1.5 text-sm transition-colors duration-150 rounded",
                 tipoSeleccionado === value
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
               {label}
             </button>
           ))}
