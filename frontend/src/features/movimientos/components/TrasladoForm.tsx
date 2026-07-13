@@ -103,18 +103,17 @@ export function TrasladoForm({ potreros, onSuccess, onCancel }: Props) {
       {/* Toggle modo */}
       <div className="space-y-1.5">
         <Label>Trasladar</Label>
-        <div className="flex rounded-md border overflow-hidden text-sm">
+        <div className="flex gap-1 rounded-md bg-muted p-0.5">
           {(["animales", "lote"] as Modo[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => cambiarModo(m)}
               className={[
-                "flex-1 px-3 py-2 transition-colors",
+                "flex-1 rounded px-3 py-1.5 text-sm transition-colors duration-150",
                 modo === m
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "bg-background hover:bg-muted text-muted-foreground",
-                m === "lote" ? "border-l" : "",
+                  ? "bg-background text-foreground font-medium shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
               ].join(" ")}
             >
               {m === "animales" ? "Animales individuales" : "Lote completo"}

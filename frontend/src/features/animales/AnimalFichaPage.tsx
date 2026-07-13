@@ -151,7 +151,7 @@ export function AnimalFichaPage() {
       <div className="grid grid-cols-[280px_1fr] gap-6 items-start">
 
         {/* Izquierda: datos */}
-        <div className="rounded-lg border bg-card p-5 space-y-5">
+        <div className="rounded-lg bg-card p-5 space-y-5 shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)]">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             Identificación
           </p>
@@ -192,7 +192,7 @@ export function AnimalFichaPage() {
         </div>
 
         {/* Derecha: historial */}
-        <div className="rounded-lg border bg-card p-5">
+        <div className="rounded-lg bg-card p-5 shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)]">
           <Tabs defaultValue="pesajes">
             <TabsList className="h-8 mb-4">
               <TabsTrigger value="pesajes" className="text-xs">
