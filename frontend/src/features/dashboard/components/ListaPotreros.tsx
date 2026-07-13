@@ -34,7 +34,7 @@ export function ListaPotreros({ potreros, selectedId, onSelect, isLoading }: Pro
     .filter(p => filtro === "todos" || p.alertas.length > 0)
 
   return (
-    <aside className="w-72 shrink-0 shadow-[-2px_0_8px_0_rgb(0_0_0/0.05)] sticky top-0 self-start h-screen flex flex-col bg-sidebar">
+    <aside className="w-72 shrink-0 shadow-[-2px_0_8px_0_rgb(0_0_0/0.05)] sticky top-0 self-start h-[calc(100vh-3rem)] flex flex-col bg-sidebar">
 
       {/* Header */}
       <div className="px-4 pt-5 pb-3 space-y-3">

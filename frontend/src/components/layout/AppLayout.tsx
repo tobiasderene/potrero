@@ -23,6 +23,8 @@ import { useMe } from "@/hooks/useMe"
 import { usePermissions } from "@/hooks/usePermissions"
 import { useDarkMode } from "@/hooks/useDarkMode"
 import { cn } from "@/lib/utils"
+import { GlobalSearch } from "./GlobalSearch"
+import { UserMenu } from "./UserMenu"
 
 // ── Nav structure ──────────────────────────────────────────────
 
@@ -47,32 +49,105 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Operaciones",
     items: [
-      { to: "/animales",    icon: PawPrint,       label: "Animales",   roles: ["propietario", "administrador"] },
-      { to: "/lotes",       icon: Layers,          label: "Lotes",      roles: ["propietario", "administrador"] },
-      { to: "/movimientos", icon: ArrowLeftRight,  label: "Movimientos",roles: ["administrador"] },
-      { to: "/pesajes",     icon: Weight,          label: "Pesajes",    roles: ["administrador"] },
+      { to: "/animales",    icon: PawPrint,      label: "Animales",    roles: ["propietario", "administrador"] },
+      { to: "/lotes",       icon: Layers,         label: "Lotes",       roles: ["propietario", "administrador"] },
+      { to: "/movimientos", icon: ArrowLeftRight, label: "Movimientos", roles: ["administrador"] },
+      { to: "/pesajes",     icon: Weight,         label: "Pesajes",     roles: ["administrador"] },
     ],
   },
   {
     label: "Sanidad",
     items: [
-      { to: "/sanidad",             icon: Stethoscope, label: "Registro",   roles: ["propietario", "administrador", "veterinario"] },
-      { to: "/sanidad/calendario",  icon: Calendar,    label: "Calendario", roles: ["propietario", "administrador", "veterinario"] },
+      { to: "/sanidad",            icon: Stethoscope, label: "Registro",   roles: ["propietario", "administrador", "veterinario"] },
+      { to: "/sanidad/calendario", icon: Calendar,    label: "Calendario", roles: ["propietario", "administrador", "veterinario"] },
     ],
   },
   {
     label: "Configuración",
     items: [
-      { to: "/potreros",   icon: MapPin,  label: "Potreros",      roles: ["propietario", "administrador"] },
-      { to: "/categorias", icon: Scale,   label: "Categorías UG", roles: ["administrador"] },
-      { to: "/reportes",   icon: FileText,label: "Reportes",      roles: ["propietario", "administrador"] },
+      { to: "/potreros",   icon: MapPin,   label: "Potreros",      roles: ["propietario", "administrador"] },
+      { to: "/categorias", icon: Scale,    label: "Categorías UG", roles: ["administrador"] },
+      { to: "/reportes",   icon: FileText, label: "Reportes",      roles: ["propietario", "administrador"] },
     ],
   },
 ]
 
-// ── Sidebar ────────────────────────────────────────────────────
+// ── Icon-only sidebar (desktop) ────────────────────────────────
 
-function Sidebar({ onClose }: { onClose?: () => void }) {
+function NavTooltipItem({
+  to,
+  icon: Icon,
+  label,
+}: {
+  to: string
+  icon: ComponentType<{ className?: string }>
+  label: string
+}) {
+  return (
+    <div className="group/nav relative flex items-center">
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          cn(
+            "flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-150",
+            isActive
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+          )
+        }
+      >
+        <Icon className="h-4 w-4" />
+      </NavLink>
+
+      {/* Tooltip */}
+      <div
+        className={cn(
+          "pointer-events-none absolute left-full ml-3 z-50",
+          "opacity-0 -translate-x-1",
+          "group-hover/nav:opacity-100 group-hover/nav:translate-x-0",
+          "transition-all duration-150 ease-out",
+        )}
+      >
+        <span className="whitespace-nowrap rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs font-medium text-popover-foreground shadow-md">
+          {label}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function Sidebar() {
+  const { rol } = usePermissions()
+
+  const visibleGroups = NAV_GROUPS.map(g => ({
+    ...g,
+    items: g.items.filter(item => !rol || item.roles.includes(rol)),
+  })).filter(g => g.items.length > 0)
+
+  return (
+    <aside className="flex h-full w-14 flex-col items-center bg-sidebar pt-2 pb-3 shrink-0 shadow-[1px_0_8px_0_rgb(0_0_0/0.05)]">
+      <nav className="flex flex-1 flex-col items-center gap-0.5 w-full px-2.5">
+        {visibleGroups.map((group, gi) => (
+          <div
+            key={gi}
+            className={cn(
+              "flex flex-col items-center gap-0.5 w-full",
+              gi > 0 && "mt-2 pt-2 border-t border-sidebar-border/60",
+            )}
+          >
+            {group.items.map(({ to, icon, label }) => (
+              <NavTooltipItem key={to} to={to} icon={icon} label={label} />
+            ))}
+          </div>
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+// ── Full sidebar (mobile overlay) ─────────────────────────────
+
+function MobileSidebar({ onClose }: { onClose: () => void }) {
   const { signOut } = useAuth()
   const { data: me } = useMe()
   const { rol } = usePermissions()
@@ -87,40 +162,21 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
   return (
     <aside className="flex h-full w-60 flex-col bg-sidebar shadow-[1px_0_8px_0_rgb(0_0_0/0.05)]">
-
-      {/* Wordmark */}
-      <div className="flex h-14 items-center gap-2.5 px-4 shrink-0">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-campo-600 shrink-0">
-          <Leaf className="h-4 w-4 text-white" />
+      <div className="flex h-12 items-center gap-2.5 px-4 shrink-0">
+        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-campo-600 shrink-0">
+          <Leaf className="h-3.5 w-3.5 text-white" />
         </div>
-        <span className="text-base font-bold tracking-tight text-sidebar-foreground">
-          Novillo
-        </span>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="ml-auto rounded-md p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors lg:hidden"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+        <span className="text-sm font-bold tracking-tight text-sidebar-foreground">Novillo</span>
+        <button
+          onClick={onClose}
+          className="ml-auto rounded-md p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
-
-      {/* Establecimiento */}
-      {me?.establecimiento && (
-        <div className="px-4 pb-3 shrink-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-0.5">
-            Establecimiento
-          </p>
-          <p className="text-sm font-medium text-sidebar-foreground truncate leading-snug">
-            {me.establecimiento.nombre}
-          </p>
-        </div>
-      )}
 
       <div className="mx-3 h-px bg-sidebar-border/60 shrink-0" />
 
-      {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
         {visibleGroups.map((group, gi) => (
           <div key={gi}>
@@ -140,7 +196,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                       "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150",
                       isActive
                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                        : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                     )
                   }
                 >
@@ -153,7 +209,6 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         ))}
       </nav>
 
-      {/* User + sign out */}
       <div className="shrink-0 p-2 pt-1">
         <div className="mx-1 mb-2 h-px bg-sidebar-border/60" />
         <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
@@ -161,12 +216,8 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             <span className="text-xs font-semibold text-campo-600 dark:text-campo-200">{initial}</span>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-sidebar-foreground truncate leading-snug">
-              {me?.email}
-            </p>
-            {rol && (
-              <p className="text-[10px] text-muted-foreground capitalize">{rol}</p>
-            )}
+            <p className="text-xs font-medium text-sidebar-foreground truncate">{me?.email}</p>
+            {rol && <p className="text-[10px] text-muted-foreground capitalize">{rol}</p>}
           </div>
         </div>
         <button
@@ -193,47 +244,65 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { pathname } = useLocation()
+  const { data: me } = useMe()
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col h-screen bg-background">
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:h-screen lg:sticky lg:top-0">
-        <Sidebar />
-      </div>
+      {/* Header */}
+      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-border bg-background px-3 z-40">
 
-      {/* Mobile overlay */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="relative z-10 flex h-full">
-            <Sidebar onClose={() => setMobileOpen(false)} />
+        {/* Mobile: hamburger */}
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors lg:hidden"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+
+        {/* Logo + Establecimiento */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-campo-600 shrink-0">
+            <Leaf className="h-3.5 w-3.5 text-white" />
           </div>
+          {me?.establecimiento?.nombre && (
+            <span className="hidden sm:block text-sm font-semibold text-foreground truncate max-w-[180px]">
+              {me.establecimiento.nombre}
+            </span>
+          )}
         </div>
-      )}
 
-      {/* Main */}
-      <div className="flex flex-1 flex-col min-w-0">
+        {/* Search — centrado */}
+        <div className="flex-1 flex justify-center px-2">
+          <GlobalSearch />
+        </div>
 
-        {/* Mobile top bar */}
-        <header className="flex h-14 items-center gap-3 border-b border-border bg-background px-4 lg:hidden shrink-0">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-campo-600">
-              <Leaf className="h-3.5 w-3.5 text-white" />
+        {/* User menu */}
+        <UserMenu />
+      </header>
+
+      {/* Body */}
+      <div className="flex flex-1 min-h-0">
+
+        {/* Desktop sidebar */}
+        <div className="hidden lg:flex lg:flex-col">
+          <Sidebar />
+        </div>
+
+        {/* Mobile overlay */}
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            <div
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+            />
+            <div className="relative z-10 flex h-full">
+              <MobileSidebar onClose={() => setMobileOpen(false)} />
             </div>
-            <span className="text-sm font-bold tracking-tight">Novillo</span>
           </div>
-        </header>
+        )}
 
+        {/* Main */}
         <main className="flex-1 overflow-auto bg-background">
           <div key={pathname} className="animate-in fade-in slide-in-from-bottom-2 duration-200">
             <Outlet />
