@@ -110,9 +110,9 @@
   --destructive: oklch(0.495 0.176 25);
   --destructive-foreground: oklch(0.985 0 0);
 
-  /* Borders y inputs: borde cálido, no gris frío */
-  --border: oklch(0.906 0.008 80);
-  --input: oklch(0.906 0.008 80);
+  /* Borders — casi imperceptibles, el contraste de superficie reemplaza la línea */
+  --border: oklch(0.952 0.004 80);
+  --input: oklch(0.918 0.006 80);
 
   /* Ring: verde campo en focus */
   --ring: oklch(0.491 0.126 144);
@@ -125,15 +125,14 @@
   --chart-5: oklch(0.495 0.176 25);    /* rojo */
 
   /* ── Sidebar ──────────────────────────────────────────────────── */
-  /* Ligeramente distinto del background para dar definición sin border heavy */
-  --sidebar: oklch(0.977 0.004 80);
+  /* Tinte campo suave para diferenciarlo del background sin necesitar border */
+  --sidebar: oklch(0.968 0.012 145);
   --sidebar-foreground: oklch(0.250 0.008 60);
   --sidebar-primary: oklch(0.491 0.126 144);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  /* Item activo: tinte verde suave */
-  --sidebar-accent: oklch(0.955 0.018 145);
+  --sidebar-accent: oklch(0.948 0.022 145);
   --sidebar-accent-foreground: oklch(0.410 0.103 144);
-  --sidebar-border: oklch(0.906 0.008 80);
+  --sidebar-border: oklch(0.938 0.010 145);
   --sidebar-ring: oklch(0.491 0.126 144);
 }
 

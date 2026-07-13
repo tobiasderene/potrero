@@ -49,25 +49,25 @@ function InventarioDialog({ data, onClose }: { data: ReporteInventarioRead; onCl
       </div>
 
       <div className="flex-1 overflow-auto print:overflow-visible">
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full text-xs">
           <thead className="bg-muted/60 sticky top-0 print:static">
             <tr>
               {["Caravana", "Nro Campo", "Categoría", "Sexo", "Raza", "Potrero", "Lote", "UG"].map((h) => (
-                <th key={h} className="text-left px-2 py-1.5 border border-border font-medium">{h}</th>
+                <th key={h} className="text-left px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-border/50">
             {preview.map((a, i) => (
-              <tr key={a.id} className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-                <td className="px-2 py-1 border border-border">{a.caravana_senacsa ?? "—"}</td>
-                <td className="px-2 py-1 border border-border">{a.numero_campo ?? "—"}</td>
-                <td className="px-2 py-1 border border-border">{a.categoria}</td>
-                <td className="px-2 py-1 border border-border capitalize">{a.sexo}</td>
-                <td className="px-2 py-1 border border-border">{a.raza ?? "—"}</td>
-                <td className="px-2 py-1 border border-border">{a.potrero_nombre ?? "—"}</td>
-                <td className="px-2 py-1 border border-border">{a.lote_nombre ?? "—"}</td>
-                <td className="px-2 py-1 border border-border">{a.coeficiente_ug}</td>
+              <tr key={a.id} className={i % 2 === 0 ? "" : "bg-muted/20"}>
+                <td className="px-3 py-1.5">{a.caravana_senacsa ?? "—"}</td>
+                <td className="px-3 py-1.5">{a.numero_campo ?? "—"}</td>
+                <td className="px-3 py-1.5">{a.categoria}</td>
+                <td className="px-3 py-1.5 capitalize">{a.sexo}</td>
+                <td className="px-3 py-1.5">{a.raza ?? "—"}</td>
+                <td className="px-3 py-1.5">{a.potrero_nombre ?? "—"}</td>
+                <td className="px-3 py-1.5">{a.lote_nombre ?? "—"}</td>
+                <td className="px-3 py-1.5">{a.coeficiente_ug}</td>
               </tr>
             ))}
           </tbody>
@@ -112,27 +112,27 @@ function MovimientosDialog({ data, onClose }: { data: ReporteMovimientosRead; on
             Sin movimientos en el período seleccionado.
           </p>
         ) : (
-          <table className="w-full text-xs border-collapse">
+          <table className="w-full text-xs">
             <thead className="bg-muted/60 sticky top-0 print:static">
               <tr>
                 {["Fecha", "Tipo", "Animales", "Origen", "Destino", "Proveedor/Comprador", "Precio", "Guía"].map((h) => (
-                  <th key={h} className="text-left px-2 py-1.5 border border-border font-medium">{h}</th>
+                  <th key={h} className="text-left px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border/50">
               {data.movimientos.map((m, i) => (
-                <tr key={m.evento_id} className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}>
-                  <td className="px-2 py-1 border border-border">{m.fecha_evento}</td>
-                  <td className="px-2 py-1 border border-border">{TIPO_LABEL[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
-                  <td className="px-2 py-1 border border-border text-center">{m.total_animales}</td>
-                  <td className="px-2 py-1 border border-border">{m.potrero_origen ?? "—"}</td>
-                  <td className="px-2 py-1 border border-border">{m.potrero_destino ?? "—"}</td>
-                  <td className="px-2 py-1 border border-border">{m.proveedor_comprador ?? "—"}</td>
-                  <td className="px-2 py-1 border border-border">
+                <tr key={m.evento_id} className={i % 2 === 0 ? "" : "bg-muted/20"}>
+                  <td className="px-3 py-1.5">{m.fecha_evento}</td>
+                  <td className="px-3 py-1.5">{TIPO_LABEL[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
+                  <td className="px-3 py-1.5 text-center">{m.total_animales}</td>
+                  <td className="px-3 py-1.5">{m.potrero_origen ?? "—"}</td>
+                  <td className="px-3 py-1.5">{m.potrero_destino ?? "—"}</td>
+                  <td className="px-3 py-1.5">{m.proveedor_comprador ?? "—"}</td>
+                  <td className="px-3 py-1.5">
                     {m.precio ? `${m.precio} ${m.moneda ?? ""}` : "—"}
                   </td>
-                  <td className="px-2 py-1 border border-border">{m.numero_guia_senacsa ?? "—"}</td>
+                  <td className="px-3 py-1.5">{m.numero_guia_senacsa ?? "—"}</td>
                 </tr>
               ))}
             </tbody>

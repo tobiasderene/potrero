@@ -34,9 +34,9 @@ export function DataTable<T>({
   const rows = table.getRowModel().rows
 
   return (
-    <div className={cn("rounded-md border overflow-hidden", className)}>
+    <div className={cn("rounded-lg overflow-hidden bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)]", className)}>
       <table className="w-full text-sm">
-        <thead className="bg-muted/40 border-b border-border">
+        <thead className="bg-muted/50">
           {table.getHeaderGroups().map(hg => (
             <tr key={hg.id}>
               {hg.headers.map(h => (
@@ -52,7 +52,7 @@ export function DataTable<T>({
             </tr>
           ))}
         </thead>
-        <tbody className="divide-y divide-border">
+        <tbody className="divide-y divide-border/60">
           {rows.length === 0 ? (
             <tr>
               <td colSpan={colCount}>

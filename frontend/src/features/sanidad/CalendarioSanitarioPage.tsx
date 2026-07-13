@@ -68,7 +68,7 @@ export function CalendarioSanitarioPage() {
         {data.carencias_activas.length === 0 ? (
           <SectionOk text="No hay animales con carencia activa." />
         ) : (
-          <div className="rounded-lg border divide-y">
+          <div className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] overflow-hidden divide-y divide-border/60">
             {data.carencias_activas.map((c: CarenciaActiva) => (
               <div key={c.animal_id} className="flex items-center justify-between px-4 py-3">
                 <div className="space-y-0.5">
@@ -102,7 +102,7 @@ export function CalendarioSanitarioPage() {
         {data.proximas_antiaftosa.length === 0 ? (
           <SectionOk text="Todos los animales tienen la antiaftosa al día." />
         ) : (
-          <div className="rounded-lg border divide-y">
+          <div className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] overflow-hidden divide-y divide-border/60">
             {data.proximas_antiaftosa.map((a: ProximaAntiaftosa) => (
               <div key={a.animal_id} className="flex items-center justify-between px-4 py-3">
                 <div className="space-y-0.5">

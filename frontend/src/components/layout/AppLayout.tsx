@@ -82,7 +82,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
   const initial = me?.email?.[0]?.toUpperCase() ?? "?"
 
   return (
-    <aside className="flex h-full w-60 flex-col bg-sidebar border-r border-sidebar-border">
+    <aside className="flex h-full w-60 flex-col bg-sidebar shadow-[1px_0_8px_0_rgb(0_0_0/0.05)]">
 
       {/* Wordmark */}
       <div className="flex h-14 items-center gap-2.5 px-4 shrink-0">
@@ -114,7 +114,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
       )}
 
-      <div className="mx-3 border-t border-sidebar-border shrink-0" />
+      <div className="mx-3 h-px bg-sidebar-border/60 shrink-0" />
 
       {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-4">
@@ -150,7 +150,8 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* User + sign out */}
-      <div className="shrink-0 border-t border-sidebar-border p-2">
+      <div className="shrink-0 p-2 pt-1">
+        <div className="mx-1 mb-2 h-px bg-sidebar-border/60" />
         <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-campo-100">
             <span className="text-xs font-semibold text-campo-700">{initial}</span>

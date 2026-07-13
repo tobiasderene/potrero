@@ -122,8 +122,8 @@ export function CategoriasPage() {
       {isLoading ? (
         <TableSkeleton />
       ) : (
-        <div className="rounded-lg border divide-y">
-          <div className="grid grid-cols-3 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] overflow-hidden divide-y divide-border/60">
+          <div className="grid grid-cols-3 px-4 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground bg-muted/50">
             <span className="col-span-2">Categoría</span>
             <span>Coef. UG</span>
           </div>
