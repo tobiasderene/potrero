@@ -11,6 +11,7 @@ export interface AnimalFilters {
   estado?: string
   limit?: number
   cursor?: string
+  enabled?: boolean
 }
 
 export interface AnimalCreatePayload {
@@ -36,18 +37,20 @@ export interface AnimalUpdatePayload {
 }
 
 export function useAnimales(filters: AnimalFilters = {}) {
+  const { enabled = true, ...queryFilters } = filters
   return useQuery({
-    queryKey: ["animales", filters],
+    queryKey: ["animales", queryFilters],
+    enabled,
     queryFn: async () => {
       const params = new URLSearchParams()
-      if (filters.caravana) params.set("caravana", filters.caravana)
-      if (filters.numero_campo) params.set("numero_campo", filters.numero_campo)
-      if (filters.categoria) params.set("categoria", filters.categoria)
-      if (filters.potrero_id) params.set("potrero_id", filters.potrero_id)
-      if (filters.lote_id) params.set("lote_id", filters.lote_id)
-      if (filters.estado) params.set("estado", filters.estado)
-      if (filters.cursor) params.set("cursor", filters.cursor)
-      params.set("limit", String(filters.limit ?? 20))
+      if (queryFilters.caravana) params.set("caravana", queryFilters.caravana)
+      if (queryFilters.numero_campo) params.set("numero_campo", queryFilters.numero_campo)
+      if (queryFilters.categoria) params.set("categoria", queryFilters.categoria)
+      if (queryFilters.potrero_id) params.set("potrero_id", queryFilters.potrero_id)
+      if (queryFilters.lote_id) params.set("lote_id", queryFilters.lote_id)
+      if (queryFilters.estado) params.set("estado", queryFilters.estado)
+      if (queryFilters.cursor) params.set("cursor", queryFilters.cursor)
+      params.set("limit", String(queryFilters.limit ?? 20))
       const { data } = await api.get<PaginatedCursor<AnimalRead>>(`/api/v1/animales?${params}`)
       return data
     },
