@@ -16,6 +16,7 @@ interface LoteCreate {
 
 interface LoteUpdate {
   nombre?: string
+  proposito?: string
   potrero_principal_id?: string | null
   peso_promedio_ingreso?: number | null
   peso_objetivo_salida?: number | null
@@ -77,6 +78,7 @@ export function useAsignarAnimalesLote() {
       qc.invalidateQueries({ queryKey: ["lotes"] })
       qc.invalidateQueries({ queryKey: ["lote", loteId] })
       qc.invalidateQueries({ queryKey: ["animales"] })
+      qc.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })
 }

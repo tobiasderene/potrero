@@ -21,6 +21,7 @@ class LoteCreate(BaseModel):
 
 class LoteUpdate(BaseModel):
     nombre: str | None = Field(default=None, min_length=1, max_length=100)
+    proposito: PropositoLote | None = None
     potrero_principal_id: uuid.UUID | None = None
     peso_promedio_ingreso: Decimal | None = Field(default=None, gt=0)
     peso_objetivo_salida: Decimal | None = Field(default=None, gt=0)
