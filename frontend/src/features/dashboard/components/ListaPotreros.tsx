@@ -34,10 +34,10 @@ export function ListaPotreros({ potreros, selectedId, onSelect, isLoading }: Pro
     .filter(p => filtro === "todos" || p.alertas.length > 0)
 
   return (
-    <aside className="w-72 shrink-0 border-l sticky top-0 self-start h-screen flex flex-col bg-background">
+    <aside className="w-72 shrink-0 shadow-[-2px_0_8px_0_rgb(0_0_0/0.05)] sticky top-0 self-start h-screen flex flex-col bg-sidebar">
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-3 border-b space-y-3">
+      <div className="px-4 pt-5 pb-3 space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Potreros
@@ -97,7 +97,7 @@ export function ListaPotreros({ potreros, selectedId, onSelect, isLoading }: Pro
       </div>
 
       {/* Lista */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto divide-y divide-border/40">
         {isLoading ? (
           <div className="space-y-px p-2">
             {[1, 2, 3, 4].map(i => (
@@ -120,9 +120,9 @@ export function ListaPotreros({ potreros, selectedId, onSelect, isLoading }: Pro
                 key={p.potrero.id}
                 onClick={() => onSelect(p.potrero.id)}
                 className={cn(
-                  "w-full text-left px-4 py-3.5 border-b border-border/40 transition-colors",
-                  "hover:bg-accent/60",
-                  isSelected ? "bg-accent" : "bg-background",
+                  "w-full text-left px-4 py-3.5 transition-colors",
+                  "hover:bg-sidebar-accent/60",
+                  isSelected ? "bg-sidebar-accent" : "",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">

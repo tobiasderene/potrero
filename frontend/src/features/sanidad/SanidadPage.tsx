@@ -88,7 +88,7 @@ export function SanidadPage() {
               if (key === "tratamiento") { setAnimalTratamiento(null); setShowTratamiento(true) }
               if (key === "diagnostico") { setAnimalDiagnostico(null); setShowDiagnostico(true) }
             }}
-            className="rounded-lg border p-5 text-left hover:bg-accent hover:border-campo-200 transition-colors duration-150 space-y-2"
+            className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] p-5 text-left hover:bg-accent transition-colors duration-150 space-y-2"
           >
             <Icon className="h-5 w-5 text-muted-foreground" />
             <p className="font-medium text-sm">{label}</p>

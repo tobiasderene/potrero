@@ -33,7 +33,7 @@ export function PesajesHistorial({ pesajes, loteId, anular, anulando }: Props) {
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">Historial de pesajes</p>
-      <div className="rounded-md border divide-y text-sm">
+      <div className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] overflow-hidden divide-y divide-border/60 text-sm">
         {desc.map((p, i) => {
           const gdp = gdpDesc[i]
           return (

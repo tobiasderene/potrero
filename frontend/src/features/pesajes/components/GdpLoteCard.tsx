@@ -2,9 +2,9 @@ import { TrendingUp, Minus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useGdpLote } from "../hooks/usePesajes"
 
-interface Props {
-  loteId: string
-}
+const CARD = "rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] p-4"
+
+interface Props { loteId: string }
 
 function EstadoBadge({ estado }: { estado: string }) {
   if (estado === "completo") return <Badge variant="default">Completo</Badge>
@@ -19,12 +19,12 @@ export function GdpLoteCard({ loteId }: Props) {
   if (!data) return null
 
   const promedio = data.gdp_promedio_g_dia ? Number(data.gdp_promedio_g_dia) : null
-  const minimo = data.gdp_minimo_g_dia ? Number(data.gdp_minimo_g_dia) : null
-  const maximo = data.gdp_maximo_g_dia ? Number(data.gdp_maximo_g_dia) : null
+  const minimo   = data.gdp_minimo_g_dia   ? Number(data.gdp_minimo_g_dia)   : null
+  const maximo   = data.gdp_maximo_g_dia   ? Number(data.gdp_maximo_g_dia)   : null
 
   if (data.estado === "sin_dato_suficiente") {
     return (
-      <div className="rounded-lg border p-4 space-y-1">
+      <div className={`${CARD} space-y-1`}>
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium">GDP del lote (IND-02)</p>
           <EstadoBadge estado={data.estado} />
@@ -37,7 +37,7 @@ export function GdpLoteCard({ loteId }: Props) {
   }
 
   return (
-    <div className="rounded-lg border p-4 space-y-3">
+    <div className={`${CARD} space-y-3`}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">GDP del lote (IND-02)</p>
         <EstadoBadge estado={data.estado} />
@@ -52,7 +52,7 @@ export function GdpLoteCard({ loteId }: Props) {
             </div>
             <p className="text-lg font-semibold">{minimo.toFixed(0)} g/d</p>
           </div>
-          <div className="text-center border-x">
+          <div className="text-center bg-muted/30 rounded-lg py-1">
             <div className="flex items-center justify-center gap-1 text-muted-foreground mb-1">
               <TrendingUp className="h-3 w-3" />
               <span className="text-xs">Promedio</span>

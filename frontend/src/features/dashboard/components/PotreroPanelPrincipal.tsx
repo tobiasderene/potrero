@@ -107,9 +107,9 @@ function StatCard({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-card p-4",
-        highlight === "red" && "border-red-200 bg-red-50/40",
-        highlight === "amber" && "border-amber-200 bg-amber-50/40",
+        "rounded-xl bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] p-4",
+        highlight === "red"   && "bg-red-50/60   ring-1 ring-red-100",
+        highlight === "amber" && "bg-amber-50/60 ring-1 ring-amber-100",
       )}
     >
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -155,7 +155,7 @@ function ActionBtn({
   return (
     <Link
       to={to}
-      className="group flex items-center gap-3 rounded-xl border bg-card px-4 py-3.5 hover:bg-accent transition-colors"
+      className="group flex items-center gap-3 rounded-xl bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] px-4 py-3.5 hover:bg-accent transition-colors"
     >
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted group-hover:bg-background transition-colors shrink-0">
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -277,7 +277,7 @@ export function PotreroPanelPrincipal({ potrero: enriched, gdp, lastMovements }:
               <Link
                 key={l.id}
                 to="/lotes"
-                className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg border bg-card hover:bg-accent transition-colors"
+                className="inline-flex items-center gap-2 text-sm px-3 py-2 rounded-lg bg-card shadow-[0_1px_3px_0_rgb(0_0_0/0.06)] hover:bg-accent transition-colors"
               >
                 <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 <span className="font-medium">{l.nombre}</span>
@@ -347,7 +347,7 @@ export function PotreroPanelPrincipal({ potrero: enriched, gdp, lastMovements }:
           <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
             Último movimiento
           </h3>
-          <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl border bg-card text-sm">
+          <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] text-sm">
             <Zap className="h-4 w-4 text-muted-foreground shrink-0" />
             <div className="min-w-0 flex-1">
               <span className="font-medium">
