@@ -19,10 +19,10 @@ const badgeVariants = cva(
           "border-border text-foreground",
 
         /* ── Semánticos Novillo ── */
-        success:  "border-green-200  bg-green-50  text-green-700",
-        warning:  "border-amber-200  bg-amber-50  text-amber-700",
-        danger:   "border-red-200    bg-red-50    text-red-700",
-        info:     "border-blue-200   bg-blue-50   text-blue-700",
+        success:  "border-green-500/25  bg-green-500/10  text-green-700  dark:text-green-400",
+        warning:  "border-amber-500/25  bg-amber-500/10  text-amber-700  dark:text-amber-400",
+        danger:   "border-red-500/25    bg-red-500/10    text-red-700    dark:text-red-400",
+        info:     "border-blue-500/25   bg-blue-500/10   text-blue-700   dark:text-blue-400",
         inactive: "border-border     bg-muted/40  text-muted-foreground",
       },
     },

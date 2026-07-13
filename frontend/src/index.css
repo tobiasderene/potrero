@@ -59,6 +59,11 @@
   --color-tierra-600: var(--tierra-600);
 }
 
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 :root {
   /* Radio base — usado por componentes que referencian --radius directamente */
   --radius: 0.5rem;

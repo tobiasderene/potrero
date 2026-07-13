@@ -17,8 +17,8 @@ const ESTADO_DOT: Record<string, string> = {
 }
 
 const ALERTA_BADGE: Record<string, string> = {
-  critico: "bg-red-50 text-red-600 ring-1 ring-red-200",
-  advertencia: "bg-amber-50 text-amber-600 ring-1 ring-amber-200",
+  critico: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-500/25",
+  advertencia: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/25",
   normal: "",
 }
 
@@ -51,13 +51,13 @@ export function ListaPotreros({ potreros, selectedId, onSelect, isLoading }: Pro
         {(critCount > 0 || advCount > 0) && (
           <div className="flex flex-wrap gap-1.5">
             {critCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/25">
                 <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
                 {critCount} crítico{critCount !== 1 ? "s" : ""}
               </span>
             )}
             {advCount > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/25">
                 <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
                 {advCount} advertencia{advCount !== 1 ? "s" : ""}
               </span>

@@ -31,37 +31,37 @@ const TIPOS: {
     value: "ingreso_compra",
     label: "Ingreso por compra",
     description: "Registrar animales comprados externamente",
-    color: "bg-green-50 border-green-200 hover:border-green-400 hover:bg-green-50/80",
+    color: "bg-green-500/10 border-green-500/25 hover:border-green-500/50 hover:bg-green-500/15",
   },
   {
     value: "nacimiento",
     label: "Nacimiento",
     description: "Registrar cría nacida en el establecimiento",
-    color: "bg-blue-50 border-blue-200 hover:border-blue-400 hover:bg-blue-50/80",
+    color: "bg-blue-500/10 border-blue-500/25 hover:border-blue-500/50 hover:bg-blue-500/15",
   },
   {
     value: "traslado",
     label: "Traslado interno",
     description: "Mover animales entre potreros",
-    color: "bg-orange-50 border-orange-200 hover:border-orange-400 hover:bg-orange-50/80",
+    color: "bg-orange-500/10 border-orange-500/25 hover:border-orange-500/50 hover:bg-orange-500/15",
   },
   {
     value: "asignacion_lote",
     label: "Asignación a lote",
     description: "Agregar animales existentes a un lote activo",
-    color: "bg-yellow-50 border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50/80",
+    color: "bg-yellow-500/10 border-yellow-500/25 hover:border-yellow-500/50 hover:bg-yellow-500/15",
   },
   {
     value: "egreso_venta",
     label: "Egreso por venta",
     description: "Registrar venta de animales (requiere caravana SENACSA)",
-    color: "bg-purple-50 border-purple-200 hover:border-purple-400 hover:bg-purple-50/80",
+    color: "bg-purple-500/10 border-purple-500/25 hover:border-purple-500/50 hover:bg-purple-500/15",
   },
   {
     value: "egreso_muerte",
     label: "Egreso por muerte",
     description: "Registrar baja por muerte",
-    color: "bg-red-50 border-red-200 hover:border-red-400 hover:bg-red-50/80",
+    color: "bg-red-500/10 border-red-500/25 hover:border-red-500/50 hover:bg-red-500/15",
   },
 ]
 
@@ -170,17 +170,17 @@ export function MovimientosPage() {
 
       {/* Paso 3: confirmación */}
       {step === "confirmacion" && resultado && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-green-500/25 bg-green-500/10">
           <CardContent className="pt-6 space-y-4">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+              <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
               <div>
-                <p className="font-semibold text-green-900">
+                <p className="font-semibold text-foreground">
                   {resultado.tipo === "asignacion_lote"
                     ? `${resultado.asignados} animal${resultado.asignados !== 1 ? "es" : ""} asignado${resultado.asignados !== 1 ? "s" : ""} al lote`
                     : "Movimiento registrado exitosamente"}
                 </p>
-                <p className="text-sm text-green-700">{tipoLabel}</p>
+                <p className="text-sm text-green-700 dark:text-green-400">{tipoLabel}</p>
               </div>
             </div>
 

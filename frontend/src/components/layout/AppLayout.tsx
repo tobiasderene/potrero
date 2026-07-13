@@ -157,8 +157,8 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
       <div className="shrink-0 p-2 pt-1">
         <div className="mx-1 mb-2 h-px bg-sidebar-border/60" />
         <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-campo-100">
-            <span className="text-xs font-semibold text-campo-700">{initial}</span>
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-campo-600/20">
+            <span className="text-xs font-semibold text-campo-600 dark:text-campo-200">{initial}</span>
           </div>
           <div className="min-w-0">
             <p className="text-xs font-medium text-sidebar-foreground truncate leading-snug">

@@ -39,21 +39,21 @@ const ESTADO_CFG: Record<Estado, {
 }> = {
   critico: {
     dot: "bg-red-500",
-    badge: "bg-red-50 text-red-700 border border-red-200",
+    badge: "bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/25",
     border: "border-l-red-500",
     label: "Crítico",
     icon: AlertCircle,
   },
   advertencia: {
     dot: "bg-amber-400",
-    badge: "bg-amber-50 text-amber-700 border border-amber-200",
+    badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25",
     border: "border-l-amber-400",
     label: "Advertencia",
     icon: AlertTriangle,
   },
   normal: {
     dot: "bg-green-500",
-    badge: "bg-green-50 text-green-700 border border-green-200",
+    badge: "bg-green-500/10 text-green-700 dark:text-green-400 border border-green-500/25",
     border: "border-l-green-500",
     label: "Normal",
     icon: CheckCircle2,
@@ -61,9 +61,9 @@ const ESTADO_CFG: Record<Estado, {
 }
 
 const SEV_CFG: Record<Severidad, { dot: string; text: string; bg: string }> = {
-  critica: { dot: "bg-red-500", text: "text-red-700", bg: "bg-red-50 border-red-100" },
-  alta:    { dot: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50 border-amber-100" },
-  media:   { dot: "bg-yellow-400", text: "text-yellow-600", bg: "bg-yellow-50 border-yellow-100" },
+  critica: { dot: "bg-red-500",    text: "text-red-700 dark:text-red-400",       bg: "bg-red-500/10 border-red-500/20" },
+  alta:    { dot: "bg-amber-500",  text: "text-amber-700 dark:text-amber-400",   bg: "bg-amber-500/10 border-amber-500/20" },
+  media:   { dot: "bg-yellow-400", text: "text-yellow-600 dark:text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/20" },
 }
 
 const TIPO_MOV: Record<string, string> = {
@@ -108,8 +108,8 @@ function StatCard({
     <div
       className={cn(
         "rounded-xl bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] p-4",
-        highlight === "red"   && "bg-red-50/60   ring-1 ring-red-100",
-        highlight === "amber" && "bg-amber-50/60 ring-1 ring-amber-100",
+        highlight === "red"   && "bg-red-500/8   ring-1 ring-red-500/20",
+        highlight === "amber" && "bg-amber-500/8 ring-1 ring-amber-500/20",
       )}
     >
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
@@ -130,9 +130,9 @@ function StatCard({
           className={cn(
             "text-xs mt-2",
             highlight === "red"
-              ? "text-red-600"
+              ? "text-red-600 dark:text-red-400"
               : highlight === "amber"
-              ? "text-amber-600"
+              ? "text-amber-600 dark:text-amber-400"
               : "text-muted-foreground",
           )}
         >
@@ -296,9 +296,9 @@ export function PotreroPanelPrincipal({ potrero: enriched, gdp, lastMovements }:
         </h3>
 
         {alertas.length === 0 ? (
-          <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-xl border bg-green-50 border-green-100">
+          <div className="flex items-center gap-2.5 px-4 py-3.5 rounded-xl border bg-green-500/10 border-green-500/25">
             <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-            <p className="text-sm text-green-700">Sin alertas activas en este potrero.</p>
+            <p className="text-sm text-green-700 dark:text-green-400">Sin alertas activas en este potrero.</p>
           </div>
         ) : (
           <div className="space-y-2">
