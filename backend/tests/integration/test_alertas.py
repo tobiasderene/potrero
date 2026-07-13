@@ -17,6 +17,7 @@ def _mock_rows(items: list) -> MagicMock:
 
 def _row(**kwargs) -> MagicMock:
     m = MagicMock()
+    m.potrero_actual_id = None  # evita que Pydantic reciba MagicMock en uuid fields
     for k, v in kwargs.items():
         setattr(m, k, v)
     return m

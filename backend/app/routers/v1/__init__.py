@@ -10,6 +10,7 @@ from app.routers.v1 import (
     importaciones,
     lotes,
     movimientos,
+    onboarding,
     pesajes,
     potreros,
     reportes,
@@ -27,6 +28,7 @@ router.include_router(lotes.router)
 router.include_router(movimientos.router)
 router.include_router(pesajes.router)
 router.include_router(sanidad.router)
+router.include_router(onboarding.router)
 router.include_router(dashboard.router)
 router.include_router(alertas.router)
 router.include_router(reportes.router)

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormError } from "@/components/FormError"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -102,7 +103,7 @@ function CreatePotreroCard({ onCancel }: { onCancel: () => void }) {
       <CardHeader className="pb-3"><CardTitle className="text-base">Nuevo potrero</CardTitle></CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+          <FormError message={error} />
           <PotreroFormFields form={form} onChange={setForm} />
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" size="sm" onClick={onCancel}>Cancelar</Button>

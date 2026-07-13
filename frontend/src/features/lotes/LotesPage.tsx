@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { AlertCircle, Clock, Layers, Pencil, Plus, Users } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormError } from "@/components/FormError"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -116,7 +117,7 @@ function LoteFormDialog({ title, defaultForm, onSave, onClose, potreroOptions, i
   const [form, setForm] = useState<LoteForm>(defaultForm)
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSave(form) }} className="space-y-4">
-      {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+      <FormError message={error} />
       <LoteFormFields form={form} onChange={setForm} potreroOptions={potreroOptions} />
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>

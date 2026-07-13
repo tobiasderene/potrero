@@ -25,6 +25,7 @@ import { useDarkMode } from "@/hooks/useDarkMode"
 import { cn } from "@/lib/utils"
 import { GlobalSearch } from "./GlobalSearch"
 import { UserMenu } from "./UserMenu"
+import { OnboardingChecklist } from "@/features/dashboard/components/OnboardingChecklist"
 
 // ── Nav structure ──────────────────────────────────────────────
 
@@ -208,6 +209,8 @@ function MobileSidebar({ onClose }: { onClose: () => void }) {
           </div>
         ))}
       </nav>
+
+      <OnboardingChecklist />
 
       <div className="shrink-0 p-2 pt-1">
         <div className="mx-1 mb-2 h-px bg-sidebar-border/60" />

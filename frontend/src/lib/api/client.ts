@@ -15,7 +15,14 @@ api.interceptors.request.use(async (config) => {
 
 export function getApiError(err: unknown): string {
   if (axios.isAxiosError(err)) {
-    return err.response?.data?.detail ?? err.message
+    const status = err.response?.status ?? 0
+    if (status >= 500) {
+      return "Error interno del servidor. Intentá de nuevo en unos minutos."
+    }
+    const detail = err.response?.data?.detail
+    if (typeof detail === "string") return detail
+    if (Array.isArray(detail)) return detail.map((d: { msg?: string }) => d.msg ?? String(d)).join(". ")
+    return err.message
   }
   return "Error inesperado"
 }

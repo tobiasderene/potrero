@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { FormError } from "@/components/FormError"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -111,7 +111,7 @@ export function IngresoCompraForm({ potreros, lotes, onSuccess, onCancel }: Prop
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+      <FormError message={error} />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
