@@ -194,7 +194,7 @@ export function PotreroPanelPrincipal({ potrero: enriched, gdp, lastMovements }:
     : undefined
 
   return (
-    <div className="p-6 max-w-3xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+    <div className="p-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
 
       {/* ── Encabezado ─────────────────────────────────────────── */}
       <div className={cn("border-l-4 pl-5 mb-8", cfg.border)}>

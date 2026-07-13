@@ -8,7 +8,7 @@ import { ListaPotreros } from "./components/ListaPotreros"
 
 function LoadingSkeleton() {
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
+    <div className="p-6 space-y-6">
       <div className="border-l-4 border-border pl-5">
         <div className="h-7 w-48 rounded-lg bg-muted animate-pulse mb-2" />
         <div className="h-4 w-32 rounded bg-muted animate-pulse" />
