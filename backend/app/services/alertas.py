@@ -355,7 +355,9 @@ async def _alerta_sin_pesaje_invernada(
 async def _alerta_lote_invernada_sin_gdp(
     db: AsyncSession, est: str
 ) -> list[AlertaRead]:
-    """Lote de invernada donde ningún animal tiene GDP calculado (< 2 pesajes individuales)."""
+    """Lote de invernada sin GDP calculable: ni individual (>=2 pesajes por animal)
+    ni estimado de lote (>=2 pesajes lote_estimado) — coincide con el fallback de
+    calcular_gdp_lote() en services/pesajes.py."""
     result = await db.execute(
         text("""
             WITH animales_con_gdp AS (
@@ -372,14 +374,26 @@ async def _alerta_lote_invernada_sin_gdp(
                       AND e.anulado = FALSE
                   ) >= 2
                 GROUP BY a.lote_actual_id
+            ),
+            lotes_con_gdp_estimado AS (
+                SELECT ep.lote_id, COUNT(DISTINCT e.fecha_evento) AS con_gdp
+                FROM evento_pesajes ep
+                JOIN eventos e ON e.id = ep.evento_id
+                WHERE ep.lote_id IS NOT NULL
+                  AND ep.tipo = 'lote_estimado'
+                  AND e.anulado = FALSE
+                GROUP BY ep.lote_id
+                HAVING COUNT(DISTINCT e.fecha_evento) >= 2
             )
             SELECT l.id, l.nombre
             FROM lotes l
             LEFT JOIN animales_con_gdp ag ON ag.lote_actual_id = l.id
+            LEFT JOIN lotes_con_gdp_estimado le ON le.lote_id = l.id
             WHERE l.establecimiento_id = :est_id
               AND l.estado = 'activo'
               AND l.proposito = 'invernada'
               AND COALESCE(ag.con_gdp, 0) = 0
+              AND le.lote_id IS NULL
         """),
         {"est_id": est},
     )
@@ -390,7 +404,7 @@ async def _alerta_lote_invernada_sin_gdp(
             entidad_tipo="lote",
             entidad_id=r.id,
             entidad_label=r.nombre,
-            mensaje="Ningún animal del lote tiene GDP calculado. Se necesitan al menos 2 pesajes individuales.",
+            mensaje="El lote no tiene GDP calculable. Se necesitan al menos 2 pesajes individuales o 2 pesajes de lote.",
         )
         for r in result.all()
     ]
