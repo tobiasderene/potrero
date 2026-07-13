@@ -21,8 +21,8 @@ const NOMBRE_DISPLAY: Record<string, { label: string; ugDefault: string }> = {
 
 function TableSkeleton() {
   return (
-    <div className="rounded-lg border divide-y">
-      <div className="grid grid-cols-3 px-4 py-2">
+    <div className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] overflow-hidden divide-y divide-border/60">
+      <div className="grid grid-cols-3 px-4 py-2 bg-muted/50">
         <div className="col-span-2 h-3 w-20 bg-muted animate-pulse rounded" />
         <div className="h-3 w-16 bg-muted animate-pulse rounded" />
       </div>

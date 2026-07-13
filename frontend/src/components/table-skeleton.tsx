@@ -13,9 +13,9 @@ export function TableSkeleton({
   className?: string
 }) {
   return (
-    <div className={cn("rounded-md border overflow-hidden", className)}>
+    <div className={cn("rounded-lg overflow-hidden bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)]", className)}>
       <table className="w-full text-sm">
-        <thead className="bg-muted/40 border-b border-border">
+        <thead className="bg-muted/50">
           <tr>
             {Array.from({ length: cols }).map((_, i) => (
               <th key={i} className="px-4 py-3 text-left">
@@ -24,7 +24,7 @@ export function TableSkeleton({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border">
+        <tbody className="divide-y divide-border/60">
           {Array.from({ length: rows }).map((_, ri) => (
             <tr key={ri}>
               {Array.from({ length: cols }).map((_, ci) => (
