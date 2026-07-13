@@ -1,5 +1,5 @@
 import { useState, type ComponentType } from "react"
-import { NavLink, Outlet } from "react-router-dom"
+import { NavLink, Outlet, useLocation } from "react-router-dom"
 import {
   ArrowLeftRight,
   Calendar,
@@ -192,6 +192,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { pathname } = useLocation()
 
   return (
     <div className="flex min-h-screen">
@@ -234,7 +235,9 @@ export function AppLayout() {
         </header>
 
         <main className="flex-1 overflow-auto bg-background">
-          <Outlet />
+          <div key={pathname} className="animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
