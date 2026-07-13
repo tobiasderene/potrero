@@ -133,7 +133,7 @@ export function TrasladoForm({ potreros, onSuccess, onCancel }: Props) {
           <Select value={potreroId || "__none__"} onValueChange={(v) => setPotreroId(v === "__none__" ? "" : v)}>
             <SelectTrigger><SelectValue placeholder="Seleccionar potrero..." /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">— Seleccionar —</SelectItem>
+              <SelectItem value="__none__">Seleccionar</SelectItem>
               {potreros.filter((p) => p.estado === "activo").map((p) => (
                 <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
               ))}
@@ -155,7 +155,7 @@ export function TrasladoForm({ potreros, onSuccess, onCancel }: Props) {
           <Select value={loteId || "__none__"} onValueChange={(v) => setLoteId(v === "__none__" ? "" : v)}>
             <SelectTrigger><SelectValue placeholder="Seleccionar lote..." /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">— Seleccionar —</SelectItem>
+              <SelectItem value="__none__">Seleccionar</SelectItem>
               {lotesData?.items.map((l) => (
                 <SelectItem key={l.id} value={l.id}>
                   {l.nombre}

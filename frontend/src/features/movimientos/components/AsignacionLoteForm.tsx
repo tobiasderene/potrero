@@ -56,7 +56,7 @@ export function AsignacionLoteForm({ lotes, onSuccess, onCancel }: Props) {
         <Select value={loteId || "__none__"} onValueChange={(v) => setLoteId(v === "__none__" ? "" : v)}>
           <SelectTrigger><SelectValue placeholder="Seleccionar lote..." /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="__none__">— Seleccionar —</SelectItem>
+            <SelectItem value="__none__">Seleccionar lote</SelectItem>
             {lotesActivos.map((l) => (
               <SelectItem key={l.id} value={l.id}>
                 {l.nombre} ({l.proposito})

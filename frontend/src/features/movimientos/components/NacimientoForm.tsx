@@ -93,7 +93,7 @@ export function NacimientoForm({ potreros, lotes, onSuccess, onCancel }: Props) 
           <Select value={madreId || "__none__"} onValueChange={(v) => setMadreId(v === "__none__" ? "" : v)}>
             <SelectTrigger><SelectValue placeholder="Seleccionar madre..." /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="__none__">— Seleccionar —</SelectItem>
+              <SelectItem value="__none__">Seleccionar madre</SelectItem>
               {hembras.map((a) => (
                 <SelectItem key={a.id} value={a.id}>{animalLabel(a)}</SelectItem>
               ))}
