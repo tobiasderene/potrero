@@ -4,10 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Radius — escala fija, no depende de calc() */
+  --radius-sm: 0.25rem;   /* 4px  — badges, tags */
+  --radius-md: 0.5rem;    /* 8px  — inputs, botones, cards */
+  --radius-lg: 0.75rem;   /* 12px — panels, cards destacadas */
+  --radius-xl: 1rem;      /* 16px — modales grandes */
+
+  /* Mapeo shadcn → utilidades Tailwind */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -23,6 +26,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -39,43 +43,101 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Paleta campo — disponible como bg-campo-*, text-campo-*, etc. */
+  --color-campo-50:  var(--campo-50);
+  --color-campo-100: var(--campo-100);
+  --color-campo-200: var(--campo-200);
+  --color-campo-600: var(--campo-600);
+  --color-campo-700: var(--campo-700);
+  --color-campo-900: var(--campo-900);
+
+  /* Paleta tierra — acentos campo */
+  --color-tierra-50:  var(--tierra-50);
+  --color-tierra-100: var(--tierra-100);
+  --color-tierra-400: var(--tierra-400);
+  --color-tierra-600: var(--tierra-600);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Radio base — usado por componentes que referencian --radius directamente */
+  --radius: 0.5rem;
+
+  /* ── Paleta campo ─────────────────────────────────────────────── */
+  --campo-50:  oklch(0.968 0.020 145);
+  --campo-100: oklch(0.930 0.042 145);
+  --campo-200: oklch(0.880 0.068 145);
+  --campo-600: oklch(0.491 0.126 144);   /* verde campo principal */
+  --campo-700: oklch(0.410 0.103 144);   /* hover / texto sobre claro */
+  --campo-900: oklch(0.270 0.068 144);   /* texto oscuro sobre campo-50 */
+
+  /* ── Paleta tierra ────────────────────────────────────────────── */
+  --tierra-50:  oklch(0.965 0.016 75);
+  --tierra-100: oklch(0.936 0.030 72);
+  --tierra-400: oklch(0.634 0.063 62);
+  --tierra-600: oklch(0.498 0.073 57);
+
+  /* ── Semánticos de interfaz ───────────────────────────────────── */
+
+  /* Fondo: blanco cálido, no frío */
+  --background: oklch(0.982 0.003 80);
+  --foreground: oklch(0.178 0.008 60);
+
+  /* Cards: blanco puro para que destaquen sobre el fondo cálido */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.178 0.008 60);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.178 0.008 60);
+
+  /* Primary = verde campo */
+  --primary: oklch(0.491 0.126 144);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+
+  /* Secondary = gris cálido claro */
+  --secondary: oklch(0.958 0.006 80);
+  --secondary-foreground: oklch(0.250 0.008 60);
+
+  /* Muted = mismo tono, para fondos de tabla header etc. */
+  --muted: oklch(0.958 0.006 80);
+  --muted-foreground: oklch(0.605 0.012 80);   /* ~#A39E96 */
+
+  /* Accent = campo-50, hover de ghost/outline y nav activo */
+  --accent: oklch(0.968 0.020 145);
+  --accent-foreground: oklch(0.410 0.103 144);
+
+  /* Destructive = rojo natural */
+  --destructive: oklch(0.495 0.176 25);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Borders y inputs: borde cálido, no gris frío */
+  --border: oklch(0.906 0.008 80);
+  --input: oklch(0.906 0.008 80);
+
+  /* Ring: verde campo en focus */
+  --ring: oklch(0.491 0.126 144);
+
+  /* Charts: paleta campo */
+  --chart-1: oklch(0.491 0.126 144);   /* verde */
+  --chart-2: oklch(0.498 0.073 57);    /* tierra */
+  --chart-3: oklch(0.620 0.120 70);    /* ámbar */
+  --chart-4: oklch(0.480 0.130 240);   /* azul info */
+  --chart-5: oklch(0.495 0.176 25);    /* rojo */
+
+  /* ── Sidebar ──────────────────────────────────────────────────── */
+  /* Ligeramente distinto del background para dar definición sin border heavy */
+  --sidebar: oklch(0.977 0.004 80);
+  --sidebar-foreground: oklch(0.250 0.008 60);
+  --sidebar-primary: oklch(0.491 0.126 144);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Item activo: tinte verde suave */
+  --sidebar-accent: oklch(0.955 0.018 145);
+  --sidebar-accent-foreground: oklch(0.410 0.103 144);
+  --sidebar-border: oklch(0.906 0.008 80);
+  --sidebar-ring: oklch(0.491 0.126 144);
 }
 
+/* Dark mode — se mantiene funcional pero no es prioridad en el MVP */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -83,8 +145,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.600 0.140 144);
+  --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -92,20 +154,21 @@
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
+  --ring: oklch(0.600 0.140 144);
+  --chart-1: oklch(0.600 0.140 144);
+  --chart-2: oklch(0.634 0.063 62);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.600 0.140 144);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.600 0.140 144);
 }
