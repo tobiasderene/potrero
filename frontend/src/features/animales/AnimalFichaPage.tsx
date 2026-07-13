@@ -105,19 +105,17 @@ export function AnimalFichaPage() {
   ) : undefined
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <div className="p-6 space-y-6">
       <PageHeader
         title={animal.caravana_senacsa ?? animal.numero_campo ?? "Sin identificación"}
         description={animal.categoria_actual?.replace(/_/g, " ")}
         onBack={() => navigate(-1)}
-        action={
-          <div className="flex items-center gap-3 flex-wrap justify-end">
-            <Badge variant={animal.estado === "activo" ? "success" : "inactive"}>
-              {animal.estado}
-            </Badge>
-            {acciones}
-          </div>
+        badge={
+          <Badge variant={animal.estado === "activo" ? "success" : "inactive"}>
+            {animal.estado}
+          </Badge>
         }
+        action={acciones}
       />
 
       {/* Alerta GDP bajo */}
@@ -132,147 +130,151 @@ export function AnimalFichaPage() {
         </Alert>
       )}
 
-      {/* Datos básicos */}
-      <div className="rounded-lg border p-5 grid grid-cols-2 gap-x-8 gap-y-5">
-        <Field label="Caravana SENACSA" value={animal.caravana_senacsa} />
-        <Field label="Número de campo" value={animal.numero_campo} />
-        <Field label="Sexo" value={animal.sexo === "macho" ? "Macho" : "Hembra"} />
-        <Field label="Tipo de origen" value={animal.tipo_origen === "nacido" ? "Nacido en estancia" : "Comprado"} />
-        <Field label="Raza" value={animal.raza} />
-        <Field
-          label="Fecha de nacimiento"
-          value={animal.fecha_nacimiento
-            ? `${animal.fecha_nacimiento}${animal.fecha_nacimiento_estimada ? " (estimada)" : ""}`
-            : undefined}
-        />
-        <Field label="Establecimiento de origen" value={animal.establecimiento_origen} />
-        <Field label="Potrero actual" value={potreroNombre} />
-        {animal.fecha_egreso && <Field label="Fecha de egreso" value={animal.fecha_egreso} />}
-        {animal.tipo_egreso && <Field label="Tipo de egreso" value={animal.tipo_egreso.replace(/_/g, " ")} />}
-      </div>
+      {/* Dos columnas: datos básicos + historial */}
+      <div className="grid grid-cols-[280px_1fr] gap-6 items-start">
 
-      {/* Historial */}
-      <div className="rounded-lg border p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          Historial
+        {/* Columna izquierda: datos básicos */}
+        <div className="rounded-lg border p-5 space-y-5">
+          <Field label="Caravana SENACSA" value={animal.caravana_senacsa} />
+          <Field label="Número de campo" value={animal.numero_campo} />
+          <Field label="Sexo" value={animal.sexo === "macho" ? "Macho" : "Hembra"} />
+          <Field label="Tipo de origen" value={animal.tipo_origen === "nacido" ? "Nacido en estancia" : "Comprado"} />
+          <Field label="Raza" value={animal.raza} />
+          <Field
+            label="Fecha de nacimiento"
+            value={animal.fecha_nacimiento
+              ? `${animal.fecha_nacimiento}${animal.fecha_nacimiento_estimada ? " (estimada)" : ""}`
+              : undefined}
+          />
+          <Field label="Establecimiento de origen" value={animal.establecimiento_origen} />
+          <Field label="Potrero actual" value={potreroNombre} />
+          {animal.fecha_egreso && <Field label="Fecha de egreso" value={animal.fecha_egreso} />}
+          {animal.tipo_egreso && <Field label="Tipo de egreso" value={animal.tipo_egreso.replace(/_/g, " ")} />}
         </div>
 
-        <Tabs defaultValue="pesajes">
-          <TabsList className="h-8">
-            <TabsTrigger value="pesajes" className="text-xs">
-              Pesajes {pesajes?.length ? `(${pesajes.length})` : ""}
-            </TabsTrigger>
-            <TabsTrigger value="tratamientos" className="text-xs">
-              Tratamientos {tratamientos?.length ? `(${tratamientos.length})` : ""}
-            </TabsTrigger>
-            <TabsTrigger value="vacunaciones" className="text-xs">
-              Vacunas {vacunaciones?.length ? `(${vacunaciones.length})` : ""}
-            </TabsTrigger>
-          </TabsList>
+        {/* Columna derecha: historial */}
+        <div className="rounded-lg border p-5 space-y-4">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            Historial
+          </div>
 
-          <TabsContent value="pesajes" className="pt-3 space-y-3">
-            {pesoData.length >= 2 && (
-              <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={pesoData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis dataKey="fecha" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
-                    <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} width={40} />
-                    <Tooltip formatter={(v) => [`${v} kg`, "Peso"]} labelFormatter={(l) => `Fecha: ${l}`} />
-                    <Line
-                      type="monotone"
-                      dataKey="peso"
-                      stroke="var(--color-primary)"
-                      dot={{ r: 3 }}
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+          <Tabs defaultValue="pesajes">
+            <TabsList className="h-8">
+              <TabsTrigger value="pesajes" className="text-xs">
+                Pesajes {pesajes?.length ? `(${pesajes.length})` : ""}
+              </TabsTrigger>
+              <TabsTrigger value="tratamientos" className="text-xs">
+                Tratamientos {tratamientos?.length ? `(${tratamientos.length})` : ""}
+              </TabsTrigger>
+              <TabsTrigger value="vacunaciones" className="text-xs">
+                Vacunas {vacunaciones?.length ? `(${vacunaciones.length})` : ""}
+              </TabsTrigger>
+            </TabsList>
 
-            {variacion && variacion.estado !== "sin_dato_suficiente" && variacion.gdp_animal_g_dia && (
-              <div className="flex items-center gap-3 text-sm">
-                <span className="text-muted-foreground">GDP actual:</span>
-                <Badge variant={variacion.alerta_bajo ? "danger" : "success"}>
-                  {Number(variacion.gdp_animal_g_dia).toFixed(0)} g/día
-                </Badge>
-                {variacion.porcentaje_vs_promedio && (
-                  <span className="text-xs text-muted-foreground">
-                    {Number(variacion.porcentaje_vs_promedio).toFixed(0)}% vs. promedio del lote
-                  </span>
-                )}
-              </div>
-            )}
+            <TabsContent value="pesajes" className="pt-3 space-y-3">
+              {pesoData.length >= 2 && (
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={pesoData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="fecha" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+                      <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} width={40} />
+                      <Tooltip formatter={(v) => [`${v} kg`, "Peso"]} labelFormatter={(l) => `Fecha: ${l}`} />
+                      <Line
+                        type="monotone"
+                        dataKey="peso"
+                        stroke="var(--color-primary)"
+                        dot={{ r: 3 }}
+                        strokeWidth={2}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
-            {!pesajes?.length ? (
-              <p className="text-sm text-muted-foreground py-2">Sin pesajes registrados.</p>
-            ) : (
-              <div className="divide-y">
-                {pesajes.map(p => (
-                  <div key={p.evento_id} className="py-2.5 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{Number(p.peso_kg).toFixed(1)} kg</p>
-                      <p className="text-xs text-muted-foreground">{p.fecha_evento}</p>
-                    </div>
-                    {p.gdp_g_dia && (
-                      <Badge variant="outline" className="text-xs">
-                        GDP {Number(p.gdp_g_dia).toFixed(0)} g/d · {p.dias_intervalo} días
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+              {variacion && variacion.estado !== "sin_dato_suficiente" && variacion.gdp_animal_g_dia && (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-muted-foreground">GDP actual:</span>
+                  <Badge variant={variacion.alerta_bajo ? "danger" : "success"}>
+                    {Number(variacion.gdp_animal_g_dia).toFixed(0)} g/día
+                  </Badge>
+                  {variacion.porcentaje_vs_promedio && (
+                    <span className="text-xs text-muted-foreground">
+                      {Number(variacion.porcentaje_vs_promedio).toFixed(0)}% vs. promedio del lote
+                    </span>
+                  )}
+                </div>
+              )}
 
-          <TabsContent value="tratamientos" className="pt-3">
-            {!tratamientos?.length ? (
-              <p className="text-sm text-muted-foreground py-2">Sin tratamientos registrados.</p>
-            ) : (
-              <div className="divide-y">
-                {tratamientos.map(t => (
-                  <div key={t.evento_id} className="py-2.5 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">{t.medicamento}</p>
-                      {t.dias_carencia > 0 && (
-                        <Badge variant="danger" className="text-xs">
-                          Carencia hasta {t.fecha_fin_carencia}
+              {!pesajes?.length ? (
+                <p className="text-sm text-muted-foreground py-2">Sin pesajes registrados.</p>
+              ) : (
+                <div className="divide-y">
+                  {pesajes.map(p => (
+                    <div key={p.evento_id} className="py-2.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{Number(p.peso_kg).toFixed(1)} kg</p>
+                        <p className="text-xs text-muted-foreground">{p.fecha_evento}</p>
+                      </div>
+                      {p.gdp_g_dia && (
+                        <Badge variant="outline" className="text-xs">
+                          GDP {Number(p.gdp_g_dia).toFixed(0)} g/d · {p.dias_intervalo} días
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {t.fecha_evento} · {t.dias_carencia} días carencia
-                      {t.veterinario ? ` · Dr. ${t.veterinario}` : ""}
-                    </p>
-                    {t.diagnostico && <p className="text-xs text-muted-foreground">{t.diagnostico}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
 
-          <TabsContent value="vacunaciones" className="pt-3">
-            {!vacunaciones?.length ? (
-              <p className="text-sm text-muted-foreground py-2">Sin vacunaciones registradas.</p>
-            ) : (
-              <div className="divide-y">
-                {vacunaciones.map(v => (
-                  <div key={v.evento_id} className="py-2.5 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{v.biologico}</p>
+            <TabsContent value="tratamientos" className="pt-3">
+              {!tratamientos?.length ? (
+                <p className="text-sm text-muted-foreground py-2">Sin tratamientos registrados.</p>
+              ) : (
+                <div className="divide-y">
+                  {tratamientos.map(t => (
+                    <div key={t.evento_id} className="py-2.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">{t.medicamento}</p>
+                        {t.dias_carencia > 0 && (
+                          <Badge variant="danger" className="text-xs">
+                            Carencia hasta {t.fecha_fin_carencia}
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">
-                        {v.fecha_evento}{v.laboratorio ? ` · ${v.laboratorio}` : ""}
+                        {t.fecha_evento} · {t.dias_carencia} días carencia
+                        {t.veterinario ? ` · Dr. ${t.veterinario}` : ""}
                       </p>
+                      {t.diagnostico && <p className="text-xs text-muted-foreground">{t.diagnostico}</p>}
                     </div>
-                    {v.es_antiaftosa && <Badge variant="success" className="text-xs">Antiaftosa</Badge>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="vacunaciones" className="pt-3">
+              {!vacunaciones?.length ? (
+                <p className="text-sm text-muted-foreground py-2">Sin vacunaciones registradas.</p>
+              ) : (
+                <div className="divide-y">
+                  {vacunaciones.map(v => (
+                    <div key={v.evento_id} className="py-2.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{v.biologico}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {v.fecha_evento}{v.laboratorio ? ` · ${v.laboratorio}` : ""}
+                        </p>
+                      </div>
+                      {v.es_antiaftosa && <Badge variant="success" className="text-xs">Antiaftosa</Badge>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Dialogs */}

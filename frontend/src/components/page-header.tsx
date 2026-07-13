@@ -5,12 +5,14 @@ import { cn } from "@/lib/utils"
 export function PageHeader({
   title,
   description,
+  badge,
   action,
   onBack,
   className,
 }: {
   title: string
   description?: string
+  badge?: ReactNode
   action?: ReactNode
   onBack?: () => void
   className?: string
@@ -28,9 +30,12 @@ export function PageHeader({
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight truncate">{title}</h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-semibold tracking-tight truncate">{title}</h1>
+            {badge}
+          </div>
           {description && (
-            <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground capitalize">{description}</p>
           )}
         </div>
       </div>
