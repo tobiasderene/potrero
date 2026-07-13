@@ -58,7 +58,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Sanidad",
     items: [
-      { to: "/sanidad",            icon: Stethoscope, label: "Registro",   roles: ["propietario", "administrador", "veterinario"] },
+      { to: "/sanidad",            icon: Stethoscope, label: "Sanidad",   roles: ["propietario", "administrador", "veterinario"] },
       { to: "/sanidad/calendario", icon: Calendar,    label: "Calendario", roles: ["propietario", "administrador", "veterinario"] },
     ],
   },
