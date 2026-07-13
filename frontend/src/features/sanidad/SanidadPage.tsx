@@ -1,42 +1,69 @@
 import { useState } from "react"
-import { CheckCircle2, Pill, Stethoscope, Syringe } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { PageHeader } from "@/components/page-header"
-import { VacunacionForm } from "./components/VacunacionForm"
-import { TratamientoForm } from "./components/TratamientoForm"
-import { DiagnosticoForm } from "./components/DiagnosticoForm"
+import { CheckCircle2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { AnimalSearchSelect } from "@/features/pesajes/components/AnimalSearchSelect"
-import type { AnimalRead } from "@/types/api"
+import { cn } from "@/lib/utils"
+import type { AnimalRead, DiagnosticoRead, TratamientoRead, VacunacionRead } from "@/types/api"
+import { DiagnosticoForm } from "./components/DiagnosticoForm"
+import { TratamientoForm } from "./components/TratamientoForm"
+import { VacunacionForm } from "./components/VacunacionForm"
 
-const ACCIONES = [
-  {
-    key: "vacunacion",
-    icon: Syringe,
-    label: "Vacunación",
-    description: "Individual o lote completo",
-  },
-  {
-    key: "tratamiento",
-    icon: Pill,
-    label: "Tratamiento",
-    description: "Con cálculo de carencia",
-  },
-  {
-    key: "diagnostico",
-    icon: Stethoscope,
-    label: "Diagnóstico",
-    description: "Registro veterinario",
-  },
-] as const
+// ── Tipos ──────────────────────────────────────────────────────
 
-function AnimalChip({
-  animal,
-  onCambiar,
+type TipoSanidad = "vacunacion" | "tratamiento" | "diagnostico"
+
+const TIPOS: { value: TipoSanidad; label: string; description: string }[] = [
+  { value: "vacunacion",   label: "Vacunación",   description: "Individual o lote completo"  },
+  { value: "tratamiento",  label: "Tratamiento",  description: "Con cálculo de carencia"     },
+  { value: "diagnostico",  label: "Diagnóstico",  description: "Registro veterinario"        },
+]
+
+interface SuccessResult {
+  tipo: TipoSanidad
+  mensaje: string
+}
+
+// ── Sub-componentes ────────────────────────────────────────────
+
+function Historial() {
+  return (
+    <div className="flex flex-col items-center justify-center h-56 text-center">
+      <p className="text-sm font-medium text-foreground">Sin eventos recientes</p>
+      <p className="text-sm text-muted-foreground mt-1">
+        Seleccioná un tipo en el panel izquierdo para registrar uno.
+      </p>
+    </div>
+  )
+}
+
+function ConfirmacionCard({
+  resultado,
+  onNuevo,
 }: {
-  animal: AnimalRead
-  onCambiar: () => void
+  resultado: SuccessResult
+  onNuevo: () => void
 }) {
+  return (
+    <div className="max-w-2xl space-y-4">
+      <Card className="border-green-500/25 bg-green-500/10">
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400 shrink-0" />
+            <div>
+              <p className="font-semibold text-foreground">Evento registrado exitosamente</p>
+              <p className="text-sm text-green-700 dark:text-green-400">{resultado.mensaje}</p>
+            </div>
+          </div>
+          <Button onClick={onNuevo}>Registrar otro evento</Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function AnimalChip({ animal, onCambiar }: { animal: AnimalRead; onCambiar: () => void }) {
   return (
     <div className="rounded-md bg-muted px-3 py-2 flex items-center justify-between text-sm">
       <div>
@@ -61,122 +88,147 @@ function AnimalChip({
   )
 }
 
+// ── Page ───────────────────────────────────────────────────────
+
 export function SanidadPage() {
-  const [showVacunacion, setShowVacunacion] = useState(false)
-  const [showTratamiento, setShowTratamiento] = useState(false)
-  const [showDiagnostico, setShowDiagnostico] = useState(false)
-  const [animalTratamiento, setAnimalTratamiento] = useState<AnimalRead | null>(null)
-  const [animalDiagnostico, setAnimalDiagnostico] = useState<AnimalRead | null>(null)
-  const [lastResult, setLastResult] = useState<string | null>(null)
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoSanidad | null>(null)
+  const [resultado, setResultado] = useState<SuccessResult | null>(null)
+  const [animalSeleccionado, setAnimalSeleccionado] = useState<AnimalRead | null>(null)
 
   const { data: lotesData } = useLotes("activo")
   const lotes = lotesData?.items ?? []
 
+  function seleccionar(tipo: TipoSanidad) {
+    setTipoSeleccionado(tipo)
+    setResultado(null)
+    setAnimalSeleccionado(null)
+  }
+
+  function resetear() {
+    setTipoSeleccionado(null)
+    setResultado(null)
+    setAnimalSeleccionado(null)
+  }
+
+  function onSuccessVacunacion(r: VacunacionRead) {
+    setResultado({
+      tipo: "vacunacion",
+      mensaje: `${r.biologico} · ${r.total_animales} animal${r.total_animales !== 1 ? "es" : ""}${r.es_antiaftosa ? " · Antiaftosa" : ""}`,
+    })
+    setTipoSeleccionado(null)
+  }
+
+  function onSuccessTratamiento(r: TratamientoRead) {
+    const carencia = r.dias_carencia > 0
+      ? ` · Carencia hasta ${r.fecha_fin_carencia}`
+      : " · Sin período de carencia"
+    setResultado({ tipo: "tratamiento", mensaje: `${r.medicamento}${carencia}` })
+    setTipoSeleccionado(null)
+    setAnimalSeleccionado(null)
+  }
+
+  function onSuccessDiagnostico(r: DiagnosticoRead) {
+    setResultado({ tipo: "diagnostico", mensaje: r.descripcion })
+    setTipoSeleccionado(null)
+    setAnimalSeleccionado(null)
+  }
+
+  const tipoActual = TIPOS.find(t => t.value === tipoSeleccionado)
+  const necesitaAnimal = tipoSeleccionado === "tratamiento" || tipoSeleccionado === "diagnostico"
+
   return (
-    <div className="p-6 max-w-3xl space-y-6">
-      <PageHeader
-        title="Sanidad"
-        description="Registrá vacunaciones, tratamientos y diagnósticos veterinarios."
-      />
+    <div className="flex min-h-[calc(100vh-3rem)]">
 
-      <div className="grid grid-cols-3 gap-3">
-        {ACCIONES.map(({ key, icon: Icon, label, description }) => (
-          <button
-            key={key}
-            onClick={() => {
-              if (key === "vacunacion") setShowVacunacion(true)
-              if (key === "tratamiento") { setAnimalTratamiento(null); setShowTratamiento(true) }
-              if (key === "diagnostico") { setAnimalDiagnostico(null); setShowDiagnostico(true) }
-            }}
-            className="rounded-lg bg-card shadow-[0_1px_4px_0_rgb(0_0_0/0.07),_0_1px_2px_-1px_rgb(0_0_0/0.05)] p-5 text-left hover:bg-accent transition-colors duration-150 space-y-2"
-          >
-            <Icon className="h-5 w-5 text-muted-foreground" />
-            <p className="font-medium text-sm">{label}</p>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </button>
-        ))}
+      {/* Sidebar izquierdo */}
+      <aside className="w-44 shrink-0 border-r border-border px-3 pt-6">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Tipos de evento
+        </p>
+        <nav className="space-y-0.5">
+          {TIPOS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => seleccionar(value)}
+              className={cn(
+                "w-full text-left px-3 py-1.5 text-sm transition-colors duration-150 rounded",
+                tipoSeleccionado === value
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Panel derecho */}
+      <div className="flex-1 min-w-0 p-6">
+
+        {/* Historial — estado por defecto */}
+        {!tipoSeleccionado && !resultado && <Historial />}
+
+        {/* Confirmación */}
+        {resultado && <ConfirmacionCard resultado={resultado} onNuevo={resetear} />}
+
+        {/* Formulario */}
+        {tipoSeleccionado && !resultado && (
+          <div className="max-w-2xl space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">{tipoActual?.label}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">{tipoActual?.description}</p>
+            </div>
+
+            {/* Selección de animal (tratamiento / diagnóstico) */}
+            {necesitaAnimal && !animalSeleccionado && (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-sm text-muted-foreground mb-3">Buscá el animal</p>
+                  <AnimalSearchSelect onSelect={setAnimalSeleccionado} />
+                  <div className="mt-4 flex justify-end">
+                    <Button variant="outline" size="sm" onClick={resetear}>Cancelar</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Formularios */}
+            {tipoSeleccionado === "vacunacion" && (
+              <Card>
+                <CardContent className="pt-6">
+                  <VacunacionForm lotes={lotes} onSuccess={onSuccessVacunacion} onCancel={resetear} />
+                </CardContent>
+              </Card>
+            )}
+
+            {tipoSeleccionado === "tratamiento" && animalSeleccionado && (
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <AnimalChip animal={animalSeleccionado} onCambiar={() => setAnimalSeleccionado(null)} />
+                  <TratamientoForm
+                    animalId={animalSeleccionado.id}
+                    onSuccess={onSuccessTratamiento}
+                    onCancel={resetear}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {tipoSeleccionado === "diagnostico" && animalSeleccionado && (
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <AnimalChip animal={animalSeleccionado} onCambiar={() => setAnimalSeleccionado(null)} />
+                  <DiagnosticoForm
+                    animalId={animalSeleccionado.id}
+                    onSuccess={onSuccessDiagnostico}
+                    onCancel={resetear}
+                  />
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
-
-      {lastResult && (
-        <div className="flex items-center gap-3 rounded-md border border-green-500/25 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          {lastResult}
-        </div>
-      )}
-
-      {/* Vacunación */}
-      <Dialog open={showVacunacion} onOpenChange={setShowVacunacion}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Registrar vacunación</DialogTitle></DialogHeader>
-          <VacunacionForm
-            lotes={lotes}
-            onSuccess={(r) => {
-              setLastResult(`Vacunación registrada · ${r.biologico} · ${r.total_animales} animal(es)${r.es_antiaftosa ? " · Antiaftosa" : ""}`)
-              setShowVacunacion(false)
-            }}
-            onCancel={() => setShowVacunacion(false)}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Tratamiento */}
-      <Dialog
-        open={showTratamiento}
-        onOpenChange={(open) => { setShowTratamiento(open); if (!open) setAnimalTratamiento(null) }}
-      >
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Registrar tratamiento veterinario</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            {!animalTratamiento ? (
-              <AnimalSearchSelect onSelect={setAnimalTratamiento} />
-            ) : (
-              <>
-                <AnimalChip animal={animalTratamiento} onCambiar={() => setAnimalTratamiento(null)} />
-                <TratamientoForm
-                  animalId={animalTratamiento.id}
-                  onSuccess={(r) => {
-                    const carencia = r.dias_carencia > 0
-                      ? ` · Carencia hasta ${r.fecha_fin_carencia}`
-                      : " · Sin período de carencia"
-                    setLastResult(`Tratamiento registrado · ${r.medicamento}${carencia}`)
-                    setShowTratamiento(false)
-                    setAnimalTratamiento(null)
-                  }}
-                  onCancel={() => { setShowTratamiento(false); setAnimalTratamiento(null) }}
-                />
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Diagnóstico */}
-      <Dialog
-        open={showDiagnostico}
-        onOpenChange={(open) => { setShowDiagnostico(open); if (!open) setAnimalDiagnostico(null) }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Registrar diagnóstico veterinario</DialogTitle></DialogHeader>
-          <div className="space-y-4">
-            {!animalDiagnostico ? (
-              <AnimalSearchSelect onSelect={setAnimalDiagnostico} />
-            ) : (
-              <>
-                <AnimalChip animal={animalDiagnostico} onCambiar={() => setAnimalDiagnostico(null)} />
-                <DiagnosticoForm
-                  animalId={animalDiagnostico.id}
-                  onSuccess={(r) => {
-                    setLastResult(`Diagnóstico registrado · ${r.descripcion}`)
-                    setShowDiagnostico(false)
-                    setAnimalDiagnostico(null)
-                  }}
-                  onCancel={() => { setShowDiagnostico(false); setAnimalDiagnostico(null) }}
-                />
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
