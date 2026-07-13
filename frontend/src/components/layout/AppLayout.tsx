@@ -10,15 +10,18 @@ import {
   LogOut,
   MapPin,
   Menu,
+  Moon,
   PawPrint,
   Scale,
   Stethoscope,
+  Sun,
   Weight,
   X,
 } from "lucide-react"
 import { useAuth } from "@/features/auth/AuthContext"
 import { useMe } from "@/hooks/useMe"
 import { usePermissions } from "@/hooks/usePermissions"
+import { useDarkMode } from "@/hooks/useDarkMode"
 import { cn } from "@/lib/utils"
 
 // ── Nav structure ──────────────────────────────────────────────
@@ -73,6 +76,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
   const { signOut } = useAuth()
   const { data: me } = useMe()
   const { rol } = usePermissions()
+  const { dark, toggle } = useDarkMode()
 
   const visibleGroups = NAV_GROUPS.map(g => ({
     ...g,
@@ -165,6 +169,13 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             )}
           </div>
         </div>
+        <button
+          onClick={toggle}
+          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors duration-150"
+        >
+          {dark ? <Sun className="h-4 w-4 shrink-0" /> : <Moon className="h-4 w-4 shrink-0" />}
+          {dark ? "Modo claro" : "Modo oscuro"}
+        </button>
         <button
           onClick={signOut}
           className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors duration-150"
