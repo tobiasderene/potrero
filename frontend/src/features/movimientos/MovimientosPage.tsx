@@ -1,17 +1,21 @@
-import { useState } from "react"
-import { CheckCircle2 } from "lucide-react"
+import { useState, type ComponentType } from "react"
+import { ArrowLeftRight, CheckCircle2, DollarSign, Layers, MinusCircle, PlusCircle, Sparkles } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { PageHeader } from "@/components/page-header"
+import { Card, CardContent } from "@/components/ui/card"
+import { useDashboard } from "@/features/dashboard/hooks/useDashboard"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
+import { cn } from "@/lib/utils"
+import type { MovimientoResumenRead } from "@/types/api"
 import { AsignacionLoteForm } from "./components/AsignacionLoteForm"
 import { EgresoMuerteForm } from "./components/EgresoMuerteForm"
 import { EgresoVentaForm } from "./components/EgresoVentaForm"
 import { IngresoCompraForm } from "./components/IngresoCompraForm"
 import { NacimientoForm } from "./components/NacimientoForm"
 import { TrasladoForm } from "./components/TrasladoForm"
+
+// ── Tipos ──────────────────────────────────────────────────────
 
 type TipoMovimiento =
   | "ingreso_compra"
@@ -25,185 +29,244 @@ const TIPOS: {
   value: TipoMovimiento
   label: string
   description: string
-  color: string
+  icon: ComponentType<{ className?: string }>
 }[] = [
-  {
-    value: "ingreso_compra",
-    label: "Ingreso por compra",
-    description: "Registrar animales comprados externamente",
-    color: "bg-green-500/10 border-green-500/25 hover:border-green-500/50 hover:bg-green-500/15",
-  },
-  {
-    value: "nacimiento",
-    label: "Nacimiento",
-    description: "Registrar cría nacida en el establecimiento",
-    color: "bg-blue-500/10 border-blue-500/25 hover:border-blue-500/50 hover:bg-blue-500/15",
-  },
-  {
-    value: "traslado",
-    label: "Traslado interno",
-    description: "Mover animales entre potreros",
-    color: "bg-orange-500/10 border-orange-500/25 hover:border-orange-500/50 hover:bg-orange-500/15",
-  },
-  {
-    value: "asignacion_lote",
-    label: "Asignación a lote",
-    description: "Agregar animales existentes a un lote activo",
-    color: "bg-yellow-500/10 border-yellow-500/25 hover:border-yellow-500/50 hover:bg-yellow-500/15",
-  },
-  {
-    value: "egreso_venta",
-    label: "Egreso por venta",
-    description: "Registrar venta de animales (requiere caravana SENACSA)",
-    color: "bg-purple-500/10 border-purple-500/25 hover:border-purple-500/50 hover:bg-purple-500/15",
-  },
-  {
-    value: "egreso_muerte",
-    label: "Egreso por muerte",
-    description: "Registrar baja por muerte",
-    color: "bg-red-500/10 border-red-500/25 hover:border-red-500/50 hover:bg-red-500/15",
-  },
+  { value: "ingreso_compra", label: "Ingreso por compra",  description: "Registrar animales comprados externamente",             icon: PlusCircle    },
+  { value: "nacimiento",     label: "Nacimiento",          description: "Registrar cría nacida en el establecimiento",           icon: Sparkles      },
+  { value: "traslado",       label: "Traslado interno",    description: "Mover animales entre potreros",                         icon: ArrowLeftRight },
+  { value: "asignacion_lote",label: "Asignación a lote",   description: "Agregar animales existentes a un lote activo",          icon: Layers        },
+  { value: "egreso_venta",   label: "Egreso por venta",    description: "Registrar venta (requiere caravana SENACSA)",           icon: DollarSign    },
+  { value: "egreso_muerte",  label: "Egreso por muerte",   description: "Registrar baja por muerte",                             icon: MinusCircle   },
 ]
 
-type Step = "selector" | "formulario" | "confirmacion"
+const MOV_LABEL: Record<string, string> = {
+  ingreso_compra:   "Ingreso por compra",
+  nacimiento:       "Nacimiento",
+  traslado_interno: "Traslado interno",
+  asignacion_lote:  "Asignación a lote",
+  egreso_venta:     "Egreso por venta",
+  egreso_faena:     "Egreso por faena",
+  egreso_muerte:    "Egreso por muerte",
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+
+function formatFecha(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("es", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })
+}
 
 interface SuccessResult {
   evento_id: string
   tipo: TipoMovimiento
   advertencias?: string[]
   asignados?: number
-  extra?: Record<string, unknown>
 }
 
+// ── Sub-componentes ────────────────────────────────────────────
+
+function Historial({ movimientos }: { movimientos: MovimientoResumenRead[] }) {
+  if (movimientos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-56 text-center">
+        <p className="text-sm font-medium text-foreground">Sin movimientos registrados</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Seleccioná un tipo en el panel izquierdo para registrar uno.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3 max-w-2xl">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Últimas transacciones
+      </p>
+      <div className="space-y-1.5">
+        {movimientos.map(m => (
+          <div
+            key={m.evento_id}
+            className="flex items-center gap-4 rounded-lg border border-border/60 bg-card px-4 py-3 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">
+                {MOV_LABEL[m.tipo_movimiento] ?? m.tipo_movimiento}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {m.total_animales} animal{m.total_animales !== 1 ? "es" : ""}
+                {m.potrero_destino_nombre ? ` · ${m.potrero_destino_nombre}` : ""}
+                {m.lote_destino_nombre ? ` · Lote ${m.lote_destino_nombre}` : ""}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground shrink-0 tabular-nums">
+              {formatFecha(m.fecha_evento)}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ConfirmacionCard({
+  resultado,
+  tipoLabel,
+  onNuevo,
+}: {
+  resultado: SuccessResult
+  tipoLabel: string
+  onNuevo: () => void
+}) {
+  return (
+    <div className="max-w-2xl space-y-4">
+      <Card className="border-green-500/25 bg-green-500/10">
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400 shrink-0" />
+            <div>
+              <p className="font-semibold text-foreground">
+                {resultado.tipo === "asignacion_lote"
+                  ? `${resultado.asignados} animal${resultado.asignados !== 1 ? "es" : ""} asignado${resultado.asignados !== 1 ? "s" : ""} al lote`
+                  : "Movimiento registrado exitosamente"}
+              </p>
+              <p className="text-sm text-green-700 dark:text-green-400">{tipoLabel}</p>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground font-mono">ID: {resultado.evento_id}</p>
+
+          {resultado.advertencias && resultado.advertencias.length > 0 && (
+            <Alert>
+              <AlertDescription className="space-y-1">
+                {resultado.advertencias.map((adv, i) => (
+                  <p key={i} className="text-amber-700 dark:text-amber-400">⚠ {adv}</p>
+                ))}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button onClick={onNuevo}>Registrar otro movimiento</Button>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ── Page ───────────────────────────────────────────────────────
+
 export function MovimientosPage() {
-  const [step, setStep] = useState<Step>("selector")
   const [tipoSeleccionado, setTipoSeleccionado] = useState<TipoMovimiento | null>(null)
   const [resultado, setResultado] = useState<SuccessResult | null>(null)
 
   const { data: potrerosData } = usePotreros()
   const { data: lotesData } = useLotes("activo")
+  const { data: dashboard } = useDashboard()
+
   const potreros = potrerosData?.items ?? []
   const lotes = lotesData?.items ?? []
+  const recientes = dashboard?.ultimos_movimientos ?? []
 
-  function seleccionarTipo(tipo: TipoMovimiento) {
+  function seleccionar(tipo: TipoMovimiento) {
     setTipoSeleccionado(tipo)
-    setStep("formulario")
+    setResultado(null)
   }
 
   function onSuccess(result: { evento_id: string; [key: string]: unknown }) {
     const { evento_id, ...rest } = result
     setResultado({ evento_id, tipo: tipoSeleccionado!, ...rest })
-    setStep("confirmacion")
+    setTipoSeleccionado(null)
   }
 
   function resetear() {
-    setStep("selector")
     setTipoSeleccionado(null)
     setResultado(null)
   }
 
-  const tipoLabel = TIPOS.find((t) => t.value === tipoSeleccionado)?.label ?? ""
-
-  const headerDescription =
-    step === "selector"
-      ? "Seleccioná el tipo de movimiento"
-      : step === "formulario"
-      ? tipoLabel
-      : "Movimiento registrado"
+  const tipoActual = TIPOS.find(t => t.value === tipoSeleccionado)
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl">
-      <PageHeader
-        title="Movimientos"
-        description={headerDescription}
-        onBack={step !== "selector" ? resetear : undefined}
-      />
+    <div className="flex min-h-[calc(100vh-3rem)]">
 
-      {/* Paso 1: selector de tipo */}
-      {step === "selector" && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {TIPOS.map((tipo) => (
+      {/* Sidebar izquierdo */}
+      <aside className="w-52 shrink-0 border-r border-border p-3 pt-5">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Tipo de movimiento
+        </p>
+        <nav className="space-y-0.5">
+          {TIPOS.map(({ value, label, icon: Icon }) => (
             <button
-              key={tipo.value}
-              className={`text-left rounded-lg border-2 p-4 transition-colors duration-150 ${tipo.color}`}
-              onClick={() => seleccionarTipo(tipo.value)}
+              key={value}
+              onClick={() => seleccionar(value)}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150 text-left",
+                tipoSeleccionado === value
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
+              )}
             >
-              <p className="font-semibold">{tipo.label}</p>
-              <p className="text-sm text-muted-foreground mt-0.5">{tipo.description}</p>
+              <Icon className="h-4 w-4 shrink-0" />
+              {label}
             </button>
           ))}
-        </div>
-      )}
+        </nav>
+      </aside>
 
-      {/* Paso 2: formulario */}
-      {step === "formulario" && tipoSeleccionado && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{tipoLabel}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {tipoSeleccionado === "ingreso_compra" && (
-              <IngresoCompraForm potreros={potreros} lotes={lotes} onSuccess={onSuccess} onCancel={resetear} />
-            )}
-            {tipoSeleccionado === "nacimiento" && (
-              <NacimientoForm potreros={potreros} lotes={lotes} onSuccess={onSuccess} onCancel={resetear} />
-            )}
-            {tipoSeleccionado === "traslado" && (
-              <TrasladoForm potreros={potreros} onSuccess={(r) => onSuccess(r)} onCancel={resetear} />
-            )}
-            {tipoSeleccionado === "asignacion_lote" && (
-              <AsignacionLoteForm
-                lotes={lotes}
-                onSuccess={(r) => onSuccess({ evento_id: r.evento_id, asignados: r.asignados })}
-                onCancel={resetear}
-              />
-            )}
-            {tipoSeleccionado === "egreso_venta" && (
-              <EgresoVentaForm onSuccess={onSuccess} onCancel={resetear} />
-            )}
-            {tipoSeleccionado === "egreso_muerte" && (
-              <EgresoMuerteForm onSuccess={onSuccess} onCancel={resetear} />
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {/* Panel derecho */}
+      <div className="flex-1 min-w-0 p-6">
 
-      {/* Paso 3: confirmación */}
-      {step === "confirmacion" && resultado && (
-        <Card className="border-green-500/25 bg-green-500/10">
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
-              <div>
-                <p className="font-semibold text-foreground">
-                  {resultado.tipo === "asignacion_lote"
-                    ? `${resultado.asignados} animal${resultado.asignados !== 1 ? "es" : ""} asignado${resultado.asignados !== 1 ? "s" : ""} al lote`
-                    : "Movimiento registrado exitosamente"}
-                </p>
-                <p className="text-sm text-green-700 dark:text-green-400">{tipoLabel}</p>
-              </div>
+        {/* Historial — estado por defecto */}
+        {!tipoSeleccionado && !resultado && (
+          <Historial movimientos={recientes} />
+        )}
+
+        {/* Confirmación */}
+        {resultado && (
+          <ConfirmacionCard
+            resultado={resultado}
+            tipoLabel={TIPOS.find(t => t.value === resultado.tipo)?.label ?? ""}
+            onNuevo={resetear}
+          />
+        )}
+
+        {/* Formulario */}
+        {tipoSeleccionado && !resultado && (
+          <div className="max-w-2xl space-y-4">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">{tipoActual?.label}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">{tipoActual?.description}</p>
             </div>
-
-            <div className="text-xs text-muted-foreground font-mono">
-              ID: {resultado.evento_id}
-            </div>
-
-            {resultado.advertencias && resultado.advertencias.length > 0 && (
-              <Alert>
-                <AlertDescription className="space-y-1">
-                  {resultado.advertencias.map((adv, i) => (
-                    <p key={i} className="text-amber-700">⚠ {adv}</p>
-                  ))}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            <div className="flex gap-2">
-              <Button onClick={resetear}>Registrar otro movimiento</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            <Card>
+              <CardContent className="pt-6">
+                {tipoSeleccionado === "ingreso_compra" && (
+                  <IngresoCompraForm potreros={potreros} lotes={lotes} onSuccess={onSuccess} onCancel={resetear} />
+                )}
+                {tipoSeleccionado === "nacimiento" && (
+                  <NacimientoForm potreros={potreros} lotes={lotes} onSuccess={onSuccess} onCancel={resetear} />
+                )}
+                {tipoSeleccionado === "traslado" && (
+                  <TrasladoForm potreros={potreros} onSuccess={onSuccess} onCancel={resetear} />
+                )}
+                {tipoSeleccionado === "asignacion_lote" && (
+                  <AsignacionLoteForm
+                    lotes={lotes}
+                    onSuccess={r => onSuccess({ evento_id: r.evento_id, asignados: r.asignados })}
+                    onCancel={resetear}
+                  />
+                )}
+                {tipoSeleccionado === "egreso_venta" && (
+                  <EgresoVentaForm onSuccess={onSuccess} onCancel={resetear} />
+                )}
+                {tipoSeleccionado === "egreso_muerte" && (
+                  <EgresoMuerteForm onSuccess={onSuccess} onCancel={resetear} />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

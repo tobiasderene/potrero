@@ -83,6 +83,7 @@ function useMovimientoMutation<T>(endpoint: string) {
       qc.invalidateQueries({ queryKey: ["animales"] })
       qc.invalidateQueries({ queryKey: ["lotes"] })
       qc.invalidateQueries({ queryKey: ["potreros"] })
+      qc.invalidateQueries({ queryKey: ["dashboard"] })
     },
   })
 }
