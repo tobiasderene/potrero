@@ -23,13 +23,9 @@ function animalLabel(a: AnimalRead) {
 export function AnimalMultiSearchSelect({ label, selected, onToggle, onClear, renderBadge }: Props) {
   const [query, setQuery] = useState("")
 
-  const noQuery = { estado: "activo", limit: 0 }
-  const { data: byCaravana } = useAnimales(
-    query.length >= 2 ? { caravana: query, estado: "activo", limit: 10 } : noQuery
-  )
-  const { data: byCampo } = useAnimales(
-    query.length >= 2 ? { numero_campo: query, estado: "activo", limit: 10 } : noQuery
-  )
+  const active = query.length >= 2
+  const { data: byCaravana } = useAnimales({ caravana: query, estado: "activo", limit: 10, enabled: active })
+  const { data: byCampo } = useAnimales({ numero_campo: query, estado: "activo", limit: 10, enabled: active })
 
   const resultados = (() => {
     if (query.length < 2) return []
