@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { Pencil, Clock, RefreshCw, Scale, Pill, AlertTriangle } from "lucide-react"
+import { Pencil, RefreshCw, Scale, Pill, AlertTriangle, Weight, Syringe } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PageHeader } from "@/components/page-header"
+import { EmptyState } from "@/components/empty-state"
 import { AnimalForm } from "./components/AnimalForm"
 import { useAnimal, useCambiarCategoria, getApiError } from "./hooks/useAnimales"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
@@ -31,10 +32,21 @@ function Field({ label, value }: { label: string; value: string | null | undefin
 
 function LoadingSkeleton() {
   return (
-    <div className="p-6 max-w-2xl space-y-6">
-      <div className="h-7 w-48 bg-muted animate-pulse rounded" />
-      <div className="h-48 bg-muted/40 animate-pulse rounded-lg" />
-      <div className="h-64 bg-muted/40 animate-pulse rounded-lg" />
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-6 w-40 bg-muted animate-pulse rounded" />
+          <div className="h-4 w-24 bg-muted/60 animate-pulse rounded" />
+        </div>
+        <div className="flex gap-2">
+          <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+          <div className="h-8 w-24 bg-muted animate-pulse rounded" />
+        </div>
+      </div>
+      <div className="grid grid-cols-[280px_1fr] gap-6">
+        <div className="h-80 bg-muted/40 animate-pulse rounded-lg" />
+        <div className="h-80 bg-muted/40 animate-pulse rounded-lg" />
+      </div>
     </div>
   )
 }
@@ -85,21 +97,26 @@ export function AnimalFichaPage() {
     }))
 
   const acciones = animal.estado === "activo" ? (
-    <div className="flex gap-2 flex-wrap">
-      <Button variant="outline" size="sm" onClick={() => setShowPesaje(true)}>
-        <Scale className="h-3.5 w-3.5" />Pesaje
+    <div className="flex items-center gap-2">
+      {/* Acción principal */}
+      <Button size="sm" onClick={() => setShowPesaje(true)}>
+        <Scale className="h-3.5 w-3.5" />
+        Pesaje
       </Button>
+      {/* Acciones secundarias */}
       <Button variant="outline" size="sm" onClick={() => setShowTratamiento(true)}>
-        <Pill className="h-3.5 w-3.5" />Tratamiento
+        <Pill className="h-3.5 w-3.5" />
+        Tratamiento
       </Button>
       <Button variant="outline" size="sm" onClick={() => setShowDiagnostico(true)}>
         Diagnóstico
       </Button>
-      <Button variant="outline" size="sm" onClick={() => setShowCategoria(true)}>
-        <RefreshCw className="h-3.5 w-3.5" />Categoría
+      {/* Acciones terciarias — solo ícono */}
+      <Button variant="ghost" size="sm" onClick={() => setShowCategoria(true)} title="Cambiar categoría">
+        <RefreshCw className="h-3.5 w-3.5" />
       </Button>
-      <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
-        <Pencil className="h-3.5 w-3.5" />Editar
+      <Button variant="ghost" size="sm" onClick={() => setShowEdit(true)} title="Editar">
+        <Pencil className="h-3.5 w-3.5" />
       </Button>
     </div>
   ) : undefined
@@ -130,13 +147,21 @@ export function AnimalFichaPage() {
         </Alert>
       )}
 
-      {/* Dos columnas: datos básicos + historial */}
+      {/* Dos columnas */}
       <div className="grid grid-cols-[280px_1fr] gap-6 items-start">
 
-        {/* Columna izquierda: datos básicos */}
-        <div className="rounded-lg border p-5 space-y-5">
+        {/* Izquierda: datos */}
+        <div className="rounded-lg border bg-card p-5 space-y-5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Identificación
+          </p>
           <Field label="Caravana SENACSA" value={animal.caravana_senacsa} />
           <Field label="Número de campo" value={animal.numero_campo} />
+
+          <div className="h-px bg-border" />
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Datos del animal
+          </p>
           <Field label="Sexo" value={animal.sexo === "macho" ? "Macho" : "Hembra"} />
           <Field label="Tipo de origen" value={animal.tipo_origen === "nacido" ? "Nacido en estancia" : "Comprado"} />
           <Field label="Raza" value={animal.raza} />
@@ -146,21 +171,30 @@ export function AnimalFichaPage() {
               ? `${animal.fecha_nacimiento}${animal.fecha_nacimiento_estimada ? " (estimada)" : ""}`
               : undefined}
           />
+
+          <div className="h-px bg-border" />
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Ubicación
+          </p>
           <Field label="Establecimiento de origen" value={animal.establecimiento_origen} />
           <Field label="Potrero actual" value={potreroNombre} />
-          {animal.fecha_egreso && <Field label="Fecha de egreso" value={animal.fecha_egreso} />}
-          {animal.tipo_egreso && <Field label="Tipo de egreso" value={animal.tipo_egreso.replace(/_/g, " ")} />}
+
+          {(animal.fecha_egreso || animal.tipo_egreso) && (
+            <>
+              <div className="h-px bg-border" />
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Egreso
+              </p>
+              {animal.fecha_egreso && <Field label="Fecha de egreso" value={animal.fecha_egreso} />}
+              {animal.tipo_egreso && <Field label="Tipo de egreso" value={animal.tipo_egreso.replace(/_/g, " ")} />}
+            </>
+          )}
         </div>
 
-        {/* Columna derecha: historial */}
-        <div className="rounded-lg border p-5 space-y-4">
-          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            Historial
-          </div>
-
+        {/* Derecha: historial */}
+        <div className="rounded-lg border bg-card p-5">
           <Tabs defaultValue="pesajes">
-            <TabsList className="h-8">
+            <TabsList className="h-8 mb-4">
               <TabsTrigger value="pesajes" className="text-xs">
                 Pesajes {pesajes?.length ? `(${pesajes.length})` : ""}
               </TabsTrigger>
@@ -172,7 +206,7 @@ export function AnimalFichaPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="pesajes" className="pt-3 space-y-3">
+            <TabsContent value="pesajes" className="space-y-4">
               {pesoData.length >= 2 && (
                 <div className="h-40">
                   <ResponsiveContainer width="100%" height="100%">
@@ -181,13 +215,7 @@ export function AnimalFichaPage() {
                       <XAxis dataKey="fecha" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
                       <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} width={40} />
                       <Tooltip formatter={(v) => [`${v} kg`, "Peso"]} labelFormatter={(l) => `Fecha: ${l}`} />
-                      <Line
-                        type="monotone"
-                        dataKey="peso"
-                        stroke="var(--color-primary)"
-                        dot={{ r: 3 }}
-                        strokeWidth={2}
-                      />
+                      <Line type="monotone" dataKey="peso" stroke="var(--color-primary)" dot={{ r: 3 }} strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -208,7 +236,12 @@ export function AnimalFichaPage() {
               )}
 
               {!pesajes?.length ? (
-                <p className="text-sm text-muted-foreground py-2">Sin pesajes registrados.</p>
+                <EmptyState
+                  icon={<Weight className="h-5 w-5" />}
+                  title="Sin pesajes"
+                  description="Registrá el primer pesaje con el botón de arriba."
+                  className="py-10"
+                />
               ) : (
                 <div className="divide-y">
                   {pesajes.map(p => (
@@ -228,9 +261,14 @@ export function AnimalFichaPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="tratamientos" className="pt-3">
+            <TabsContent value="tratamientos">
               {!tratamientos?.length ? (
-                <p className="text-sm text-muted-foreground py-2">Sin tratamientos registrados.</p>
+                <EmptyState
+                  icon={<Pill className="h-5 w-5" />}
+                  title="Sin tratamientos"
+                  description="Los tratamientos y sus períodos de carencia aparecerán acá."
+                  className="py-10"
+                />
               ) : (
                 <div className="divide-y">
                   {tratamientos.map(t => (
@@ -254,9 +292,14 @@ export function AnimalFichaPage() {
               )}
             </TabsContent>
 
-            <TabsContent value="vacunaciones" className="pt-3">
+            <TabsContent value="vacunaciones">
               {!vacunaciones?.length ? (
-                <p className="text-sm text-muted-foreground py-2">Sin vacunaciones registradas.</p>
+                <EmptyState
+                  icon={<Syringe className="h-5 w-5" />}
+                  title="Sin vacunaciones"
+                  description="Las vacunas aplicadas a este animal aparecerán acá."
+                  className="py-10"
+                />
               ) : (
                 <div className="divide-y">
                   {vacunaciones.map(v => (
