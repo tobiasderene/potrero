@@ -312,6 +312,7 @@ export interface AlertaRead {
   entidad_id: string | null
   entidad_label: string | null
   mensaje: string
+  potrero_id: string | null
 }
 
 export interface AlertasResponse {

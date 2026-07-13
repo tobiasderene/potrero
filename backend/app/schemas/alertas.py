@@ -11,6 +11,7 @@ class AlertaRead(BaseModel):
     entidad_id: uuid.UUID | None
     entidad_label: str | None
     mensaje: str
+    potrero_id: uuid.UUID | None = None
 
 
 class AlertasResponse(BaseModel):

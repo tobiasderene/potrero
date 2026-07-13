@@ -46,7 +46,8 @@ export function useTorreControl() {
       const alertas = alertasAll.filter(
         a =>
           (a.entidad_tipo === "potrero" && a.entidad_id === p.id) ||
-          (a.entidad_tipo === "lote" && a.entidad_id !== null && loteIds.has(a.entidad_id)),
+          (a.entidad_tipo === "lote" && a.entidad_id !== null && loteIds.has(a.entidad_id)) ||
+          (a.entidad_tipo === "animal" && a.potrero_id === p.id),
       )
       return { potrero: p, carga, lotes, alertas, estado: deriveEstado(carga, alertas) }
     })

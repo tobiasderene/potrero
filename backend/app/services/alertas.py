@@ -54,6 +54,7 @@ async def _alerta_carencia_activa(
                 a.id,
                 a.caravana_senacsa,
                 a.numero_campo,
+                a.potrero_actual_id,
                 MAX(et.fecha_fin_carencia) AS fecha_fin,
                 STRING_AGG(et.medicamento, ', ') AS medicamentos
             FROM evento_tratamientos et
@@ -63,7 +64,7 @@ async def _alerta_carencia_activa(
               AND a.estado = 'activo'
               AND et.fecha_fin_carencia >= CURRENT_DATE
               AND e.anulado = FALSE
-            GROUP BY a.id, a.caravana_senacsa, a.numero_campo
+            GROUP BY a.id, a.caravana_senacsa, a.numero_campo, a.potrero_actual_id
             ORDER BY MAX(et.fecha_fin_carencia) DESC
             LIMIT :lim
         """),
@@ -80,6 +81,7 @@ async def _alerta_carencia_activa(
             entidad_id=r.id,
             entidad_label=_label(r.caravana_senacsa, r.numero_campo),
             mensaje=f"Carencia activa por {r.medicamentos} — vence en {dias} día{'s' if dias != 1 else ''}. Venta bloqueada.",
+            potrero_id=r.potrero_actual_id,
         ))
     return alertas
 
@@ -100,7 +102,7 @@ async def _alerta_antiaftosa_vencida(
                   AND e.anulado = FALSE
                 GROUP BY ea.animal_id
             )
-            SELECT a.id, a.caravana_senacsa, a.numero_campo, ua.ultima_fecha
+            SELECT a.id, a.caravana_senacsa, a.numero_campo, a.potrero_actual_id, ua.ultima_fecha
             FROM animales a
             LEFT JOIN ultima_antiaftosa ua ON ua.animal_id = a.id
             WHERE a.establecimiento_id = :est_id
@@ -129,6 +131,7 @@ async def _alerta_antiaftosa_vencida(
             entidad_id=r.id,
             entidad_label=_label(r.caravana_senacsa, r.numero_campo),
             mensaje=msg,
+            potrero_id=r.potrero_actual_id,
         ))
     return alertas
 
@@ -160,6 +163,7 @@ async def _alerta_gdp_negativo(
                 curr.animal_id,
                 a.caravana_senacsa,
                 a.numero_campo,
+                a.potrero_actual_id,
                 ROUND(
                     (curr.peso_kg - prev.peso_kg)::NUMERIC /
                     (curr.fecha_evento - prev.fecha_evento)::NUMERIC * 1000,
@@ -185,6 +189,7 @@ async def _alerta_gdp_negativo(
             entidad_id=r.animal_id,
             entidad_label=_label(r.caravana_senacsa, r.numero_campo),
             mensaje=f"GDP negativo: {r.gdp} g/día. El animal está perdiendo peso.",
+            potrero_id=r.potrero_actual_id,
         )
         for r in result.all()
     ]
@@ -257,6 +262,7 @@ async def _alerta_vacunacion_proxima(
                 a.id,
                 a.caravana_senacsa,
                 a.numero_campo,
+                a.potrero_actual_id,
                 (ua.ultima_fecha + INTERVAL '180 days')::DATE AS proxima
             FROM animales a
             JOIN ultima_antiaftosa ua ON ua.animal_id = a.id
@@ -279,6 +285,7 @@ async def _alerta_vacunacion_proxima(
             entidad_id=r.id,
             entidad_label=_label(r.caravana_senacsa, r.numero_campo),
             mensaje=f"Antiaftosa vence en {dias} día{'s' if dias != 1 else ''} ({r.proxima}).",
+            potrero_id=r.potrero_actual_id,
         ))
     return alertas
 
@@ -395,7 +402,7 @@ async def _alerta_animal_sin_categoria(
     """Animales activos sin categoría vigente asignada — afecta cálculo de UG."""
     result = await db.execute(
         text("""
-            SELECT a.id, a.caravana_senacsa, a.numero_campo
+            SELECT a.id, a.caravana_senacsa, a.numero_campo, a.potrero_actual_id
             FROM animales a
             LEFT JOIN animal_categorias ac
                 ON ac.animal_id = a.id AND ac.fecha_fin IS NULL
@@ -415,6 +422,7 @@ async def _alerta_animal_sin_categoria(
             entidad_id=r.id,
             entidad_label=_label(r.caravana_senacsa, r.numero_campo),
             mensaje="Animal sin categoría asignada. La carga animal en UG no es precisa.",
+            potrero_id=r.potrero_actual_id,
         )
         for r in result.all()
     ]
