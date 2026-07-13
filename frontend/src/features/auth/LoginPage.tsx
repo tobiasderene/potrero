@@ -39,6 +39,21 @@ export function LoginPage() {
     navigate("/dashboard", { replace: true })
   }
 
+  async function handleForgotPassword() {
+    setError(null)
+    setSuccessMsg(null)
+    const email = form.getValues("email")
+    if (!email) {
+      setError("Ingresá tu email primero.")
+      return
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    if (error) { setError(error.message); return }
+    setSuccessMsg("Revisá tu email para recuperar tu contraseña.")
+  }
+
   async function handleRegister(data: FormData) {
     setError(null)
     setSuccessMsg(null)
@@ -81,7 +96,14 @@ export function LoginPage() {
                 <CardDescription>Ingresá con tu email y contraseña</CardDescription>
               </CardHeader>
               <CardContent>
-                <LoginForm form={form} onSubmit={handleLogin} submitLabel="Ingresar" error={error} />
+                <LoginForm
+                  form={form}
+                  onSubmit={handleLogin}
+                  submitLabel="Ingresar"
+                  error={error}
+                  successMsg={successMsg}
+                  onForgotPassword={handleForgotPassword}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -110,13 +132,14 @@ export function LoginPage() {
 }
 
 function LoginForm({
-  form, onSubmit, submitLabel, error, successMsg,
+  form, onSubmit, submitLabel, error, successMsg, onForgotPassword,
 }: {
   form: ReturnType<typeof useForm<FormData>>
   onSubmit: (data: FormData) => Promise<void>
   submitLabel: string
   error: string | null
   successMsg?: string | null
+  onForgotPassword?: () => void
 }) {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -139,7 +162,18 @@ function LoginForm({
         )}
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="password">Contraseña</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">Contraseña</Label>
+          {onForgotPassword && (
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+        </div>
         <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
         {form.formState.errors.password && (
           <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>

@@ -4,6 +4,7 @@ import { AuthProvider } from "@/features/auth/AuthContext"
 import { RequireAuth } from "@/features/auth/RequireAuth"
 import { RequireEstablecimiento } from "@/features/auth/RequireEstablecimiento"
 import { LoginPage } from "@/features/auth/LoginPage"
+import { ResetPasswordPage } from "@/features/auth/ResetPasswordPage"
 import { OnboardingPage } from "@/features/onboarding/OnboardingPage"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { DashboardPage } from "@/features/dashboard/DashboardPage"
@@ -31,6 +32,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             <Route element={<RequireAuth />}>
               <Route path="/onboarding" element={<OnboardingPage />} />
