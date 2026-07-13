@@ -3,6 +3,7 @@ import { api, getApiError } from "@/lib/api/client"
 import type {
   CalendarioSanitarioRead,
   DiagnosticoRead,
+  SanidadEventoResumen,
   TratamientoRead,
   VacunacionRead,
 } from "@/types/api"
@@ -57,6 +58,7 @@ export function useRegistrarVacunacion() {
       qc.invalidateQueries({ queryKey: ["calendario"] })
       qc.invalidateQueries({ queryKey: ["alertas"] })
       qc.invalidateQueries({ queryKey: ["dashboard"] })
+      qc.invalidateQueries({ queryKey: ["sanidad", "recientes"] })
     },
   })
 }
@@ -117,6 +119,16 @@ export function useCalendarioSanitario() {
     queryKey: ["calendario"],
     queryFn: async () => {
       const { data } = await api.get<CalendarioSanitarioRead>("/api/v1/sanidad/calendario")
+      return data
+    },
+  })
+}
+
+export function useSanidadRecientes(limit = 20) {
+  return useQuery({
+    queryKey: ["sanidad", "recientes", limit],
+    queryFn: async () => {
+      const { data } = await api.get<SanidadEventoResumen[]>(`/api/v1/sanidad/recientes?limit=${limit}`)
       return data
     },
   })

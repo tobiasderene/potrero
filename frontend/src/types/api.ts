@@ -255,6 +255,15 @@ export interface CalendarioSanitarioRead {
   total_proximas_antiaftosa: number
 }
 
+export interface SanidadEventoResumen {
+  evento_id: string
+  tipo: "vacunacion" | "tratamiento" | "diagnostico"
+  fecha_evento: string
+  descripcion: string
+  total_animales: number
+  animal_label: string | null
+}
+
 // ── Dashboard ──────────────────────────────────────────────────
 
 export interface StockCategoriaRead {

@@ -163,6 +163,64 @@ async def get_proximas_antiaftosa(
     return list(result.all())
 
 
+async def get_eventos_sanidad_recientes(
+    db: AsyncSession,
+    establecimiento_id: uuid.UUID,
+    limit: int = 20,
+) -> list[tuple]:
+    result = await db.execute(
+        text("""
+            SELECT evento_id, tipo, fecha_evento, descripcion, total_animales, animal_label
+            FROM (
+                SELECT
+                    e.id                       AS evento_id,
+                    'vacunacion'               AS tipo,
+                    e.fecha_evento,
+                    ev.biologico               AS descripcion,
+                    COUNT(ea.animal_id)        AS total_animales,
+                    NULL::TEXT                 AS animal_label
+                FROM eventos e
+                JOIN evento_vacunaciones ev ON ev.evento_id = e.id
+                LEFT JOIN eventos_animales ea ON ea.evento_id = e.id
+                WHERE e.establecimiento_id = :est_id AND e.anulado = FALSE
+                GROUP BY e.id, ev.biologico, e.fecha_evento
+
+                UNION ALL
+
+                SELECT
+                    e.id,
+                    'tratamiento',
+                    e.fecha_evento,
+                    et.medicamento,
+                    1,
+                    COALESCE(a.caravana_senacsa, a.numero_campo)
+                FROM eventos e
+                JOIN evento_tratamientos et ON et.evento_id = e.id
+                JOIN animales a ON a.id = et.animal_id
+                WHERE e.establecimiento_id = :est_id AND e.anulado = FALSE
+
+                UNION ALL
+
+                SELECT
+                    e.id,
+                    'diagnostico',
+                    e.fecha_evento,
+                    ed.descripcion,
+                    1,
+                    COALESCE(a.caravana_senacsa, a.numero_campo)
+                FROM eventos e
+                JOIN evento_diagnosticos ed ON ed.evento_id = e.id
+                JOIN animales a ON a.id = ed.animal_id
+                WHERE e.establecimiento_id = :est_id AND e.anulado = FALSE
+            ) sub
+            ORDER BY fecha_evento DESC
+            LIMIT :lim
+        """),
+        {"est_id": str(establecimiento_id), "lim": limit},
+    )
+    return list(result.all())
+
+
 async def get_animales_activos_lote(
     db: AsyncSession,
     lote_id: uuid.UUID,

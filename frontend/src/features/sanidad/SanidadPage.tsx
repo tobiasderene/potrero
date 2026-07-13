@@ -5,10 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { AnimalSearchSelect } from "@/features/pesajes/components/AnimalSearchSelect"
 import { cn } from "@/lib/utils"
-import type { AnimalRead, DiagnosticoRead, TratamientoRead, VacunacionRead } from "@/types/api"
+import type { AnimalRead, DiagnosticoRead, SanidadEventoResumen, TratamientoRead, VacunacionRead } from "@/types/api"
 import { DiagnosticoForm } from "./components/DiagnosticoForm"
 import { TratamientoForm } from "./components/TratamientoForm"
 import { VacunacionForm } from "./components/VacunacionForm"
+import { useSanidadRecientes } from "./hooks/useSanidad"
 
 // ── Tipos ──────────────────────────────────────────────────────
 
@@ -25,15 +26,55 @@ interface SuccessResult {
   mensaje: string
 }
 
+const TIPO_LABEL: Record<string, string> = {
+  vacunacion:  "Vacunación",
+  tratamiento: "Tratamiento",
+  diagnostico: "Diagnóstico",
+}
+
+function formatFecha(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("es", { day: "2-digit", month: "short", year: "numeric" })
+}
+
 // ── Sub-componentes ────────────────────────────────────────────
 
-function Historial() {
+function Historial({ eventos }: { eventos: SanidadEventoResumen[] }) {
+  if (eventos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-56 text-center">
+        <p className="text-sm font-medium text-foreground">Sin eventos recientes</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Seleccioná un tipo en el panel izquierdo para registrar uno.
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center h-56 text-center">
-      <p className="text-sm font-medium text-foreground">Sin eventos recientes</p>
-      <p className="text-sm text-muted-foreground mt-1">
-        Seleccioná un tipo en el panel izquierdo para registrar uno.
+    <div className="space-y-3 max-w-2xl">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        Últimas transacciones sanitarias
       </p>
+      <div className="space-y-1.5">
+        {eventos.map(e => (
+          <div
+            key={e.evento_id}
+            className="flex items-center gap-4 rounded-lg border border-border/60 bg-card px-4 py-3 shadow-[0_1px_3px_0_rgb(0_0_0/0.04)]"
+          >
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{e.descripcion}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {TIPO_LABEL[e.tipo]}
+                {e.total_animales > 1 ? ` · ${e.total_animales} animales` : ""}
+                {e.animal_label ? ` · ${e.animal_label}` : ""}
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground shrink-0 tabular-nums">
+              {formatFecha(e.fecha_evento)}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -97,6 +138,7 @@ export function SanidadPage() {
 
   const { data: lotesData } = useLotes("activo")
   const lotes = lotesData?.items ?? []
+  const { data: recientes } = useSanidadRecientes()
 
   function seleccionar(tipo: TipoSanidad) {
     setTipoSeleccionado(tipo)
@@ -166,7 +208,7 @@ export function SanidadPage() {
       <div className="flex-1 min-w-0 p-6">
 
         {/* Historial — estado por defecto */}
-        {!tipoSeleccionado && !resultado && <Historial />}
+        {!tipoSeleccionado && !resultado && <Historial eventos={recientes ?? []} />}
 
         {/* Confirmación */}
         {resultado && <ConfirmacionCard resultado={resultado} onNuevo={resetear} />}

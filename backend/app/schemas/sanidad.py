@@ -121,3 +121,12 @@ class CalendarioSanitarioRead(BaseModel):
     proximas_antiaftosa: list[ProximaAntiaftosa]
     total_carencias: int
     total_proximas_antiaftosa: int
+
+
+class SanidadEventoResumen(BaseModel):
+    evento_id: uuid.UUID
+    tipo: Literal["vacunacion", "tratamiento", "diagnostico"]
+    fecha_evento: date
+    descripcion: str
+    total_animales: int
+    animal_label: str | None

@@ -8,6 +8,7 @@ from app.schemas.sanidad import (
     CalendarioSanitarioRead,
     DiagnosticoInput,
     DiagnosticoRead,
+    SanidadEventoResumen,
     TratamientoInput,
     TratamientoRead,
     VacunacionInput,
@@ -58,6 +59,27 @@ async def diagnostico(
     db: AsyncSession = Depends(get_db),
 ) -> DiagnosticoRead:
     return await svc.registrar_diagnostico(db, establecimiento_id, data, user_id)
+
+
+@router.get("/recientes", response_model=list[SanidadEventoResumen])
+async def eventos_recientes(
+    limit: int = 20,
+    establecimiento_id: uuid.UUID = Depends(get_establecimiento_id),
+    db: AsyncSession = Depends(get_db),
+) -> list[SanidadEventoResumen]:
+    from app.crud import sanidad as crud_s
+    rows = await crud_s.get_eventos_sanidad_recientes(db, establecimiento_id, limit=min(limit, 50))
+    return [
+        SanidadEventoResumen(
+            evento_id=r.evento_id,
+            tipo=r.tipo,
+            fecha_evento=r.fecha_evento,
+            descripcion=r.descripcion,
+            total_animales=r.total_animales,
+            animal_label=r.animal_label,
+        )
+        for r in rows
+    ]
 
 
 @router.get("/calendario", response_model=CalendarioSanitarioRead)
