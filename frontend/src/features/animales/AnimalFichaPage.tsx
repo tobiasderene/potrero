@@ -1,13 +1,14 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { ArrowLeft, Pencil, Clock, RefreshCw, Scale, Pill, AlertTriangle } from "lucide-react"
+import { Pencil, Clock, RefreshCw, Scale, Pill, AlertTriangle } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageHeader } from "@/components/page-header"
 import { AnimalForm } from "./components/AnimalForm"
 import { useAnimal, useCambiarCategoria, getApiError } from "./hooks/useAnimales"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
@@ -22,8 +23,18 @@ const CATEGORIAS = ["ternero", "ternera", "novillo", "vaquillona", "vaca", "vaca
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
     <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-sm font-medium mt-0.5">{value ?? "—"}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium mt-0.5">{value ?? <span className="text-muted-foreground">—</span>}</p>
+    </div>
+  )
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="p-6 max-w-2xl space-y-6">
+      <div className="h-7 w-48 bg-muted animate-pulse rounded" />
+      <div className="h-48 bg-muted/40 animate-pulse rounded-lg" />
+      <div className="h-64 bg-muted/40 animate-pulse rounded-lg" />
     </div>
   )
 }
@@ -46,6 +57,11 @@ export function AnimalFichaPage() {
   const { data: tratamientos } = useTratamientosAnimal(id ?? "")
   const { data: vacunaciones } = useVacunacionesAnimal(id ?? "")
 
+  if (isLoading) return <LoadingSkeleton />
+  if (error || !animal) return (
+    <div className="p-6 text-sm text-muted-foreground">Animal no encontrado.</div>
+  )
+
   const potreroNombre = animal?.potrero_actual_id
     ? potreros?.items.find(p => p.id === animal.potrero_actual_id)?.nombre ?? animal.potrero_actual_id
     : undefined
@@ -57,12 +73,8 @@ export function AnimalFichaPage() {
     setNuevaCategoria("")
   }
 
-  if (isLoading) return <div className="p-6 text-muted-foreground text-sm">Cargando...</div>
-  if (error || !animal) return <div className="p-6 text-muted-foreground text-sm">Animal no encontrado.</div>
-
   const categoriasDisponibles = CATEGORIAS.filter(c => c !== animal.categoria_actual)
 
-  // Curva de peso: pesajes ordenados cronológicamente
   const pesoData = (pesajes ?? [])
     .slice()
     .reverse()
@@ -72,53 +84,43 @@ export function AnimalFichaPage() {
       gdp: p.gdp_g_dia ? Number(p.gdp_g_dia).toFixed(0) : null,
     }))
 
+  const acciones = animal.estado === "activo" ? (
+    <div className="flex gap-2 flex-wrap">
+      <Button variant="outline" size="sm" onClick={() => setShowPesaje(true)}>
+        <Scale className="h-3.5 w-3.5" />Pesaje
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => setShowTratamiento(true)}>
+        <Pill className="h-3.5 w-3.5" />Tratamiento
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => setShowDiagnostico(true)}>
+        Diagnóstico
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => setShowCategoria(true)}>
+        <RefreshCw className="h-3.5 w-3.5" />Categoría
+      </Button>
+      <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
+        <Pencil className="h-3.5 w-3.5" />Editar
+      </Button>
+    </div>
+  ) : undefined
+
   return (
     <div className="p-6 max-w-2xl space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-xl font-semibold">
-            {animal.caravana_senacsa ?? animal.numero_campo ?? "Sin identificación"}
-          </h1>
-          <div className="flex items-center gap-2 mt-1">
-            {animal.categoria_actual && (
-              <span className="text-sm text-muted-foreground capitalize">
-                {animal.categoria_actual.replace(/_/g, " ")}
-              </span>
-            )}
-            <Badge variant={animal.estado === "activo" ? "default" : "secondary"}>
+      <PageHeader
+        title={animal.caravana_senacsa ?? animal.numero_campo ?? "Sin identificación"}
+        description={animal.categoria_actual?.replace(/_/g, " ")}
+        onBack={() => navigate(-1)}
+        action={
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <Badge variant={animal.estado === "activo" ? "success" : "inactive"}>
               {animal.estado}
             </Badge>
+            {acciones}
           </div>
-        </div>
-        {animal.estado === "activo" && (
-          <div className="flex gap-2 flex-wrap justify-end">
-            <Button variant="outline" size="sm" onClick={() => setShowPesaje(true)}>
-              <Scale className="h-3.5 w-3.5 mr-1.5" />
-              Pesaje
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowTratamiento(true)}>
-              <Pill className="h-3.5 w-3.5 mr-1.5" />
-              Tratamiento
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowDiagnostico(true)}>
-              Diagnóstico
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowCategoria(true)}>
-              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-              Categoría
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowEdit(true)}>
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              Editar
-            </Button>
-          </div>
-        )}
-      </div>
+        }
+      />
 
-      {/* Alerta IND-04: GDP < 75% del promedio del lote */}
+      {/* Alerta GDP bajo */}
       {variacion?.alerta_bajo && variacion.porcentaje_vs_promedio && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
@@ -131,7 +133,7 @@ export function AnimalFichaPage() {
       )}
 
       {/* Datos básicos */}
-      <div className="rounded-lg border p-5 grid grid-cols-2 gap-x-8 gap-y-4">
+      <div className="rounded-lg border p-5 grid grid-cols-2 gap-x-8 gap-y-5">
         <Field label="Caravana SENACSA" value={animal.caravana_senacsa} />
         <Field label="Número de campo" value={animal.numero_campo} />
         <Field label="Sexo" value={animal.sexo === "macho" ? "Macho" : "Hembra"} />
@@ -151,49 +153,37 @@ export function AnimalFichaPage() {
 
       {/* Historial */}
       <div className="rounded-lg border p-5 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Clock className="h-4 w-4 text-muted-foreground" />
+        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <Clock className="h-4 w-4" />
           Historial
         </div>
 
         <Tabs defaultValue="pesajes">
           <TabsList className="h-8">
             <TabsTrigger value="pesajes" className="text-xs">
-              Pesajes {pesajes && pesajes.length > 0 ? `(${pesajes.length})` : ""}
+              Pesajes {pesajes?.length ? `(${pesajes.length})` : ""}
             </TabsTrigger>
             <TabsTrigger value="tratamientos" className="text-xs">
-              Tratamientos {tratamientos && tratamientos.length > 0 ? `(${tratamientos.length})` : ""}
+              Tratamientos {tratamientos?.length ? `(${tratamientos.length})` : ""}
             </TabsTrigger>
             <TabsTrigger value="vacunaciones" className="text-xs">
-              Vacunas {vacunaciones && vacunaciones.length > 0 ? `(${vacunaciones.length})` : ""}
+              Vacunas {vacunaciones?.length ? `(${vacunaciones.length})` : ""}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pesajes" className="pt-3 space-y-3">
-            {/* Curva de peso */}
             {pesoData.length >= 2 && (
               <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={pesoData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis
-                      dataKey="fecha"
-                      tick={{ fontSize: 10 }}
-                      tickFormatter={(v) => v.slice(5)}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10 }}
-                      domain={["auto", "auto"]}
-                      width={40}
-                    />
-                    <Tooltip
-                      formatter={(v) => [`${v} kg`, "Peso"]}
-                      labelFormatter={(l) => `Fecha: ${l}`}
-                    />
+                    <XAxis dataKey="fecha" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+                    <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} width={40} />
+                    <Tooltip formatter={(v) => [`${v} kg`, "Peso"]} labelFormatter={(l) => `Fecha: ${l}`} />
                     <Line
                       type="monotone"
                       dataKey="peso"
-                      stroke="hsl(var(--primary))"
+                      stroke="var(--color-primary)"
                       dot={{ r: 3 }}
                       strokeWidth={2}
                     />
@@ -202,11 +192,10 @@ export function AnimalFichaPage() {
               </div>
             )}
 
-            {/* GDP actual */}
             {variacion && variacion.estado !== "sin_dato_suficiente" && variacion.gdp_animal_g_dia && (
               <div className="flex items-center gap-3 text-sm">
                 <span className="text-muted-foreground">GDP actual:</span>
-                <Badge variant={variacion.alerta_bajo ? "destructive" : "secondary"}>
+                <Badge variant={variacion.alerta_bajo ? "danger" : "success"}>
                   {Number(variacion.gdp_animal_g_dia).toFixed(0)} g/día
                 </Badge>
                 {variacion.porcentaje_vs_promedio && (
@@ -217,18 +206,18 @@ export function AnimalFichaPage() {
               </div>
             )}
 
-            {(!pesajes || pesajes.length === 0) ? (
-              <p className="text-sm text-muted-foreground">Sin pesajes registrados.</p>
+            {!pesajes?.length ? (
+              <p className="text-sm text-muted-foreground py-2">Sin pesajes registrados.</p>
             ) : (
               <div className="divide-y">
                 {pesajes.map(p => (
-                  <div key={p.evento_id} className="py-2 flex items-center justify-between">
+                  <div key={p.evento_id} className="py-2.5 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">{Number(p.peso_kg).toFixed(1)} kg</p>
                       <p className="text-xs text-muted-foreground">{p.fecha_evento}</p>
                     </div>
                     {p.gdp_g_dia && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="outline" className="text-xs">
                         GDP {Number(p.gdp_g_dia).toFixed(0)} g/d · {p.dias_intervalo} días
                       </Badge>
                     )}
@@ -239,16 +228,16 @@ export function AnimalFichaPage() {
           </TabsContent>
 
           <TabsContent value="tratamientos" className="pt-3">
-            {(!tratamientos || tratamientos.length === 0) ? (
-              <p className="text-sm text-muted-foreground">Sin tratamientos registrados.</p>
+            {!tratamientos?.length ? (
+              <p className="text-sm text-muted-foreground py-2">Sin tratamientos registrados.</p>
             ) : (
               <div className="divide-y">
                 {tratamientos.map(t => (
-                  <div key={t.evento_id} className="py-2 space-y-1">
+                  <div key={t.evento_id} className="py-2.5 space-y-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">{t.medicamento}</p>
                       {t.dias_carencia > 0 && (
-                        <Badge variant="destructive" className="text-xs">
+                        <Badge variant="danger" className="text-xs">
                           Carencia hasta {t.fecha_fin_carencia}
                         </Badge>
                       )}
@@ -265,22 +254,19 @@ export function AnimalFichaPage() {
           </TabsContent>
 
           <TabsContent value="vacunaciones" className="pt-3">
-            {(!vacunaciones || vacunaciones.length === 0) ? (
-              <p className="text-sm text-muted-foreground">Sin vacunaciones registradas.</p>
+            {!vacunaciones?.length ? (
+              <p className="text-sm text-muted-foreground py-2">Sin vacunaciones registradas.</p>
             ) : (
               <div className="divide-y">
                 {vacunaciones.map(v => (
-                  <div key={v.evento_id} className="py-2 flex items-center justify-between">
+                  <div key={v.evento_id} className="py-2.5 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">{v.biologico}</p>
                       <p className="text-xs text-muted-foreground">
-                        {v.fecha_evento}
-                        {v.laboratorio ? ` · ${v.laboratorio}` : ""}
+                        {v.fecha_evento}{v.laboratorio ? ` · ${v.laboratorio}` : ""}
                       </p>
                     </div>
-                    {v.es_antiaftosa && (
-                      <Badge variant="default" className="text-xs">Antiaftosa</Badge>
-                    )}
+                    {v.es_antiaftosa && <Badge variant="success" className="text-xs">Antiaftosa</Badge>}
                   </div>
                 ))}
               </div>
@@ -302,7 +288,8 @@ export function AnimalFichaPage() {
           <DialogHeader><DialogTitle>Cambiar categoría</DialogTitle></DialogHeader>
           <div className="space-y-4 pt-1">
             <p className="text-sm text-muted-foreground">
-              Categoría actual: <span className="font-medium capitalize text-foreground">
+              Categoría actual:{" "}
+              <span className="font-medium capitalize text-foreground">
                 {animal.categoria_actual?.replace(/_/g, " ") ?? "sin categoría"}
               </span>
             </p>
@@ -315,7 +302,9 @@ export function AnimalFichaPage() {
               </SelectContent>
             </Select>
             {cambiarCategoria.error && (
-              <Alert variant="destructive"><AlertDescription>{getApiError(cambiarCategoria.error)}</AlertDescription></Alert>
+              <Alert variant="destructive">
+                <AlertDescription>{getApiError(cambiarCategoria.error)}</AlertDescription>
+              </Alert>
             )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowCategoria(false)}>Cancelar</Button>

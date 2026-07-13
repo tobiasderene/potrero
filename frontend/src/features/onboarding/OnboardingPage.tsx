@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { Leaf } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { StepEstablecimiento } from "./steps/StepEstablecimiento"
@@ -20,17 +21,27 @@ export function OnboardingPage() {
   const [, setPotreros] = useState<PotreroRead[]>([])
 
   const current = STEPS[step]
-  const progress = ((step) / (STEPS.length - 1)) * 100
+  const progress = (step / (STEPS.length - 1)) * 100
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4 py-10">
       <div className="w-full max-w-lg space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Configuración inicial</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Paso {step + 1} de {STEPS.length}
-          </p>
-          <Progress value={progress} className="mt-3 h-1.5" />
+        {/* Wordmark */}
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-campo-600">
+            <Leaf className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-xl font-bold tracking-tight">Novillo</span>
+        </div>
+
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold">Configuración inicial</h1>
+            <span className="text-sm text-muted-foreground">
+              {step + 1} / {STEPS.length}
+            </span>
+          </div>
+          <Progress value={progress} className="h-1.5" />
         </div>
 
         <div className="flex gap-2">
@@ -58,18 +69,12 @@ export function OnboardingPage() {
           <CardContent>
             {step === 0 && (
               <StepEstablecimiento
-                onNext={(est) => {
-                  setEstablecimiento(est)
-                  setStep(1)
-                }}
+                onNext={(est) => { setEstablecimiento(est); setStep(1) }}
               />
             )}
             {step === 1 && (
               <StepPotreros
-                onNext={(pts) => {
-                  setPotreros(pts)
-                  setStep(2)
-                }}
+                onNext={(pts) => { setPotreros(pts); setStep(2) }}
                 onBack={() => setStep(0)}
               />
             )}

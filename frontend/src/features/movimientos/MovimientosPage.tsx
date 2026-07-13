@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { ArrowLeft, CheckCircle2 } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { PageHeader } from "@/components/page-header"
 import { useLotes } from "@/features/lotes/hooks/useLotes"
 import { usePotreros } from "@/features/potreros/hooks/usePotreros"
 import { AsignacionLoteForm } from "./components/AsignacionLoteForm"
@@ -30,37 +31,37 @@ const TIPOS: {
     value: "ingreso_compra",
     label: "Ingreso por compra",
     description: "Registrar animales comprados externamente",
-    color: "bg-green-50 border-green-200 hover:border-green-400",
+    color: "bg-green-50 border-green-200 hover:border-green-400 hover:bg-green-50/80",
   },
   {
     value: "nacimiento",
     label: "Nacimiento",
     description: "Registrar cría nacida en el establecimiento",
-    color: "bg-blue-50 border-blue-200 hover:border-blue-400",
+    color: "bg-blue-50 border-blue-200 hover:border-blue-400 hover:bg-blue-50/80",
   },
   {
     value: "traslado",
     label: "Traslado interno",
     description: "Mover animales entre potreros",
-    color: "bg-orange-50 border-orange-200 hover:border-orange-400",
+    color: "bg-orange-50 border-orange-200 hover:border-orange-400 hover:bg-orange-50/80",
   },
   {
     value: "asignacion_lote",
     label: "Asignación a lote",
     description: "Agregar animales existentes a un lote activo",
-    color: "bg-yellow-50 border-yellow-200 hover:border-yellow-400",
+    color: "bg-yellow-50 border-yellow-200 hover:border-yellow-400 hover:bg-yellow-50/80",
   },
   {
     value: "egreso_venta",
     label: "Egreso por venta",
     description: "Registrar venta de animales (requiere caravana SENACSA)",
-    color: "bg-purple-50 border-purple-200 hover:border-purple-400",
+    color: "bg-purple-50 border-purple-200 hover:border-purple-400 hover:bg-purple-50/80",
   },
   {
     value: "egreso_muerte",
     label: "Egreso por muerte",
     description: "Registrar baja por muerte",
-    color: "bg-red-50 border-red-200 hover:border-red-400",
+    color: "bg-red-50 border-red-200 hover:border-red-400 hover:bg-red-50/80",
   },
 ]
 
@@ -103,23 +104,20 @@ export function MovimientosPage() {
 
   const tipoLabel = TIPOS.find((t) => t.value === tipoSeleccionado)?.label ?? ""
 
+  const headerDescription =
+    step === "selector"
+      ? "Seleccioná el tipo de movimiento"
+      : step === "formulario"
+      ? tipoLabel
+      : "Movimiento registrado"
+
   return (
     <div className="p-6 space-y-6 max-w-3xl">
-      <div className="flex items-center gap-3">
-        {step !== "selector" && (
-          <Button variant="ghost" size="icon" onClick={resetear}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        )}
-        <div>
-          <h1 className="text-2xl font-bold">Movimientos</h1>
-          <p className="text-sm text-muted-foreground">
-            {step === "selector" && "Seleccioná el tipo de movimiento"}
-            {step === "formulario" && tipoLabel}
-            {step === "confirmacion" && "Movimiento registrado"}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Movimientos"
+        description={headerDescription}
+        onBack={step !== "selector" ? resetear : undefined}
+      />
 
       {/* Paso 1: selector de tipo */}
       {step === "selector" && (
@@ -127,7 +125,7 @@ export function MovimientosPage() {
           {TIPOS.map((tipo) => (
             <button
               key={tipo.value}
-              className={`text-left rounded-lg border-2 p-4 transition-colors ${tipo.color}`}
+              className={`text-left rounded-lg border-2 p-4 transition-colors duration-150 ${tipo.color}`}
               onClick={() => seleccionarTipo(tipo.value)}
             >
               <p className="font-semibold">{tipo.label}</p>
@@ -145,27 +143,13 @@ export function MovimientosPage() {
           </CardHeader>
           <CardContent>
             {tipoSeleccionado === "ingreso_compra" && (
-              <IngresoCompraForm
-                potreros={potreros}
-                lotes={lotes}
-                onSuccess={onSuccess}
-                onCancel={resetear}
-              />
+              <IngresoCompraForm potreros={potreros} lotes={lotes} onSuccess={onSuccess} onCancel={resetear} />
             )}
             {tipoSeleccionado === "nacimiento" && (
-              <NacimientoForm
-                potreros={potreros}
-                lotes={lotes}
-                onSuccess={onSuccess}
-                onCancel={resetear}
-              />
+              <NacimientoForm potreros={potreros} lotes={lotes} onSuccess={onSuccess} onCancel={resetear} />
             )}
             {tipoSeleccionado === "traslado" && (
-              <TrasladoForm
-                potreros={potreros}
-                onSuccess={(r) => onSuccess(r)}
-                onCancel={resetear}
-              />
+              <TrasladoForm potreros={potreros} onSuccess={(r) => onSuccess(r)} onCancel={resetear} />
             )}
             {tipoSeleccionado === "asignacion_lote" && (
               <AsignacionLoteForm
@@ -175,16 +159,10 @@ export function MovimientosPage() {
               />
             )}
             {tipoSeleccionado === "egreso_venta" && (
-              <EgresoVentaForm
-                onSuccess={onSuccess}
-                onCancel={resetear}
-              />
+              <EgresoVentaForm onSuccess={onSuccess} onCancel={resetear} />
             )}
             {tipoSeleccionado === "egreso_muerte" && (
-              <EgresoMuerteForm
-                onSuccess={onSuccess}
-                onCancel={resetear}
-              />
+              <EgresoMuerteForm onSuccess={onSuccess} onCancel={resetear} />
             )}
           </CardContent>
         </Card>

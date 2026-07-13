@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Leaf } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,10 +35,7 @@ export function LoginPage() {
       email: data.email,
       password: data.password,
     })
-    if (error) {
-      setError(error.message)
-      return
-    }
+    if (error) { setError(error.message); return }
     navigate("/dashboard", { replace: true })
   }
 
@@ -47,24 +45,25 @@ export function LoginPage() {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
-      },
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
     })
-    if (error) {
-      setError(error.message)
-      return
-    }
+    if (error) { setError(error.message); return }
     setSuccessMsg("Cuenta creada. Revisá tu email para confirmar antes de ingresar.")
     form.reset()
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm space-y-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold tracking-tight">PMR Ganadero</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+      <div className="w-full max-w-sm space-y-6">
+        {/* Wordmark */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-campo-600">
+              <Leaf className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight">Novillo</span>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
             Gestión ganadera para estancias de Paraguay
           </p>
         </div>
@@ -82,12 +81,7 @@ export function LoginPage() {
                 <CardDescription>Ingresá con tu email y contraseña</CardDescription>
               </CardHeader>
               <CardContent>
-                <LoginForm
-                  form={form}
-                  onSubmit={handleLogin}
-                  submitLabel="Ingresar"
-                  error={error}
-                />
+                <LoginForm form={form} onSubmit={handleLogin} submitLabel="Ingresar" error={error} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -116,11 +110,7 @@ export function LoginPage() {
 }
 
 function LoginForm({
-  form,
-  onSubmit,
-  submitLabel,
-  error,
-  successMsg,
+  form, onSubmit, submitLabel, error, successMsg,
 }: {
   form: ReturnType<typeof useForm<FormData>>
   onSubmit: (data: FormData) => Promise<void>
@@ -142,34 +132,20 @@ function LoginForm({
       )}
       <div className="space-y-1.5">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          autoComplete="email"
-          placeholder="admin@estancia.com"
-          {...form.register("email")}
-        />
+        <Input id="email" type="email" autoComplete="email"
+          placeholder="admin@estancia.com" {...form.register("email")} />
         {form.formState.errors.email && (
           <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
         )}
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="password">Contraseña</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          {...form.register("password")}
-        />
+        <Input id="password" type="password" autoComplete="current-password" {...form.register("password")} />
         {form.formState.errors.password && (
           <p className="text-xs text-destructive">{form.formState.errors.password.message}</p>
         )}
       </div>
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={form.formState.isSubmitting}
-      >
+      <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
         {form.formState.isSubmitting ? "Procesando..." : submitLabel}
       </Button>
     </form>

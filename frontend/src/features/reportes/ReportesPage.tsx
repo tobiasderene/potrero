@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { PageHeader } from "@/components/page-header"
 import {
   useReporteInventario,
   useReporteMovimientos,
@@ -23,15 +24,7 @@ const TIPO_LABEL: Record<string, string> = {
   egreso_muerte: "Muerte",
 }
 
-// ─── Inventario ────────────────────────────────────────────────
-
-function InventarioDialog({
-  data,
-  onClose,
-}: {
-  data: ReporteInventarioRead
-  onClose: () => void
-}) {
+function InventarioDialog({ data, onClose }: { data: ReporteInventarioRead; onClose: () => void }) {
   const exportXlsx = useExportInventario()
   const preview = data.animales.slice(0, 50)
 
@@ -41,16 +34,13 @@ function InventarioDialog({
   return (
     <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col print:max-w-full print:max-h-none">
       <DialogHeader className="print:mb-4">
-        <DialogTitle>
-          Inventario — {data.establecimiento_nombre}
-        </DialogTitle>
+        <DialogTitle>Inventario — {data.establecimiento_nombre}</DialogTitle>
         <p className="text-sm text-muted-foreground">
           {data.fecha_consulta} · {data.total_animales} animales activos
         </p>
       </DialogHeader>
 
-      {/* Resumen por categoría */}
-      <div className="flex flex-wrap gap-2 py-2 print:mb-3">
+      <div className="flex flex-wrap gap-1.5 py-2 print:mb-3">
         {Array.from(porCat.entries()).map(([cat, n]) => (
           <Badge key={cat} variant="secondary" className="text-xs">
             {cat}: {n}
@@ -58,15 +48,12 @@ function InventarioDialog({
         ))}
       </div>
 
-      {/* Tabla */}
       <div className="flex-1 overflow-auto print:overflow-visible">
         <table className="w-full text-xs border-collapse">
           <thead className="bg-muted/60 sticky top-0 print:static">
             <tr>
               {["Caravana", "Nro Campo", "Categoría", "Sexo", "Raza", "Potrero", "Lote", "UG"].map((h) => (
-                <th key={h} className="text-left px-2 py-1.5 border border-border font-medium">
-                  {h}
-                </th>
+                <th key={h} className="text-left px-2 py-1.5 border border-border font-medium">{h}</th>
               ))}
             </tr>
           </thead>
@@ -92,41 +79,28 @@ function InventarioDialog({
         )}
       </div>
 
-      {/* Acciones */}
       <div className="flex gap-2 pt-3 border-t print:hidden">
         <Button size="sm" onClick={() => exportXlsx(data)}>
-          <FileSpreadsheet className="h-4 w-4 mr-1.5" />
+          <FileSpreadsheet className="h-4 w-4" />
           Descargar Excel
         </Button>
         <Button size="sm" variant="outline" onClick={() => window.print()}>
-          <Printer className="h-4 w-4 mr-1.5" />
+          <Printer className="h-4 w-4" />
           Imprimir / PDF
         </Button>
-        <Button size="sm" variant="ghost" onClick={onClose} className="ml-auto">
-          Cerrar
-        </Button>
+        <Button size="sm" variant="ghost" onClick={onClose} className="ml-auto">Cerrar</Button>
       </div>
     </DialogContent>
   )
 }
 
-// ─── Movimientos ───────────────────────────────────────────────
-
-function MovimientosDialog({
-  data,
-  onClose,
-}: {
-  data: ReporteMovimientosRead
-  onClose: () => void
-}) {
+function MovimientosDialog({ data, onClose }: { data: ReporteMovimientosRead; onClose: () => void }) {
   const exportXlsx = useExportMovimientos()
 
   return (
     <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col print:max-w-full">
       <DialogHeader>
-        <DialogTitle>
-          Movimientos — {data.establecimiento_nombre}
-        </DialogTitle>
+        <DialogTitle>Movimientos — {data.establecimiento_nombre}</DialogTitle>
         <p className="text-sm text-muted-foreground">
           {data.fecha_desde} al {data.fecha_hasta} · {data.total_movimientos} eventos
         </p>
@@ -142,9 +116,7 @@ function MovimientosDialog({
             <thead className="bg-muted/60 sticky top-0 print:static">
               <tr>
                 {["Fecha", "Tipo", "Animales", "Origen", "Destino", "Proveedor/Comprador", "Precio", "Guía"].map((h) => (
-                  <th key={h} className="text-left px-2 py-1.5 border border-border font-medium">
-                    {h}
-                  </th>
+                  <th key={h} className="text-left px-2 py-1.5 border border-border font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -170,22 +142,18 @@ function MovimientosDialog({
 
       <div className="flex gap-2 pt-3 border-t print:hidden">
         <Button size="sm" onClick={() => exportXlsx(data)} disabled={data.total_movimientos === 0}>
-          <FileSpreadsheet className="h-4 w-4 mr-1.5" />
+          <FileSpreadsheet className="h-4 w-4" />
           Descargar Excel
         </Button>
         <Button size="sm" variant="outline" onClick={() => window.print()} disabled={data.total_movimientos === 0}>
-          <Printer className="h-4 w-4 mr-1.5" />
+          <Printer className="h-4 w-4" />
           Imprimir / PDF
         </Button>
-        <Button size="sm" variant="ghost" onClick={onClose} className="ml-auto">
-          Cerrar
-        </Button>
+        <Button size="sm" variant="ghost" onClick={onClose} className="ml-auto">Cerrar</Button>
       </div>
     </DialogContent>
   )
 }
-
-// ─── Página principal ──────────────────────────────────────────
 
 export function ReportesPage() {
   const [showInventario, setShowInventario] = useState(false)
@@ -200,83 +168,54 @@ export function ReportesPage() {
   const movimientos = useReporteMovimientos(fechaDesde, fechaHasta, showMovimientos)
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold">Reportes</h1>
-        <p className="text-muted-foreground mt-1">
-          Exportá inventario y movimientos a Excel o PDF.
-        </p>
-      </div>
+    <div className="p-6 space-y-6 max-w-3xl">
+      <PageHeader
+        title="Reportes"
+        description="Exportá inventario y movimientos a Excel o PDF."
+      />
 
-      {/* Inventario */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Inventario actual</CardTitle>
-          <CardDescription>
-            Todos los animales activos con categoría, potrero y lote.
-          </CardDescription>
+          <CardDescription>Todos los animales activos con categoría, potrero y lote.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            onClick={() => setShowInventario(true)}
-            disabled={inventario.isFetching}
-          >
-            <Search className="h-4 w-4 mr-1.5" />
+          <Button onClick={() => setShowInventario(true)} disabled={inventario.isFetching}>
+            <Search className="h-4 w-4" />
             {inventario.isFetching ? "Cargando…" : "Ver inventario"}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Movimientos */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Movimientos del período</CardTitle>
-          <CardDescription>
-            Compras, ventas, traslados y egresos en un rango de fechas.
-          </CardDescription>
+          <CardDescription>Compras, ventas, traslados y egresos en un rango de fechas.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4">
             <div className="space-y-1">
               <Label htmlFor="fecha-desde">Desde</Label>
-              <Input
-                id="fecha-desde"
-                type="date"
-                value={fechaDesde}
-                max={fechaHasta}
-                onChange={(e) => setFechaDesde(e.target.value)}
-                className="w-40"
-              />
+              <Input id="fecha-desde" type="date" value={fechaDesde} max={fechaHasta}
+                onChange={(e) => setFechaDesde(e.target.value)} className="w-40" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="fecha-hasta">Hasta</Label>
-              <Input
-                id="fecha-hasta"
-                type="date"
-                value={fechaHasta}
-                min={fechaDesde}
-                max={today}
-                onChange={(e) => setFechaHasta(e.target.value)}
-                className="w-40"
-              />
+              <Input id="fecha-hasta" type="date" value={fechaHasta} min={fechaDesde} max={today}
+                onChange={(e) => setFechaHasta(e.target.value)} className="w-40" />
             </div>
           </div>
-          <Button
-            onClick={() => setShowMovimientos(true)}
-            disabled={!fechaDesde || !fechaHasta || movimientos.isFetching}
-          >
-            <Search className="h-4 w-4 mr-1.5" />
+          <Button onClick={() => setShowMovimientos(true)}
+            disabled={!fechaDesde || !fechaHasta || movimientos.isFetching}>
+            <Search className="h-4 w-4" />
             {movimientos.isFetching ? "Cargando…" : "Ver movimientos"}
           </Button>
           {movimientos.isError && (
-            <p className="text-sm text-destructive">
-              Error al cargar los movimientos. Verificá el rango de fechas.
-            </p>
+            <p className="text-sm text-destructive">Error al cargar los movimientos. Verificá el rango de fechas.</p>
           )}
         </CardContent>
       </Card>
 
-      {/* Fichas individuales */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Ficha individual del animal</CardTitle>
@@ -286,13 +225,9 @@ export function ReportesPage() {
         </CardHeader>
       </Card>
 
-      {/* Dialogs */}
       <Dialog open={showInventario} onOpenChange={setShowInventario}>
         {inventario.data && (
-          <InventarioDialog
-            data={inventario.data}
-            onClose={() => setShowInventario(false)}
-          />
+          <InventarioDialog data={inventario.data} onClose={() => setShowInventario(false)} />
         )}
         {inventario.isLoading && (
           <DialogContent>
@@ -303,10 +238,7 @@ export function ReportesPage() {
 
       <Dialog open={showMovimientos} onOpenChange={setShowMovimientos}>
         {movimientos.data && (
-          <MovimientosDialog
-            data={movimientos.data}
-            onClose={() => setShowMovimientos(false)}
-          />
+          <MovimientosDialog data={movimientos.data} onClose={() => setShowMovimientos(false)} />
         )}
         {movimientos.isLoading && (
           <DialogContent>
