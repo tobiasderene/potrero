@@ -102,11 +102,6 @@ export function GlobalSearch() {
           placeholder="Buscar…"
           className="w-full rounded-lg border border-input bg-muted/40 pl-8 pr-3 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:bg-background transition-colors"
         />
-        {!query && (
-          <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-            ⌘K
-          </kbd>
-        )}
       </div>
 
       {open && isSearching && (
