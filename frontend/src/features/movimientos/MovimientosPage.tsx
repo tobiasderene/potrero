@@ -191,6 +191,9 @@ export function MovimientosPage() {
 
       {/* Sidebar izquierdo */}
       <aside className="w-44 shrink-0 border-r border-border px-3 pt-6">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Tipos de movimiento
+        </p>
         <nav className="space-y-0.5">
           {TIPOS.map(({ value, label }) => (
             <button
