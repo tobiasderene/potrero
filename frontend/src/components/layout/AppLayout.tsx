@@ -1,8 +1,9 @@
-import { useState, type ComponentType } from "react"
+import { Fragment, useState, type ComponentType } from "react"
 import { NavLink, Outlet, useLocation } from "react-router-dom"
 import {
   ArrowLeftRight,
   Calendar,
+  ChevronRight,
   FileText,
   LayoutDashboard,
   Layers,
@@ -242,12 +243,86 @@ function MobileSidebar({ onClose }: { onClose: () => void }) {
   )
 }
 
+// ── Breadcrumb ─────────────────────────────────────────────────
+
+type Crumb = { label: string; href?: string }
+
+function useBreadcrumbs(): Crumb[] {
+  const { pathname } = useLocation()
+
+  if (pathname.startsWith("/animales/")) {
+    return [{ label: "Animales", href: "/animales" }, { label: "Ficha" }]
+  }
+  if (pathname === "/sanidad/calendario") {
+    return [{ label: "Sanidad", href: "/sanidad" }, { label: "Calendario" }]
+  }
+
+  const labels: Record<string, string> = {
+    "/dashboard":   "Dashboard",
+    "/animales":    "Animales",
+    "/lotes":       "Lotes",
+    "/movimientos": "Movimientos",
+    "/potreros":    "Potreros",
+    "/categorias":  "Categorías UG",
+    "/pesajes":     "Pesajes",
+    "/sanidad":     "Sanidad",
+    "/reportes":    "Reportes",
+  }
+
+  const label = labels[pathname]
+  return label ? [{ label }] : []
+}
+
+function HeaderBreadcrumb() {
+  const crumbs = useBreadcrumbs()
+  const { data: me } = useMe()
+  const nombre = me?.establecimiento?.nombre
+
+  return (
+    <div className="flex items-center gap-1.5 min-w-0 shrink-0">
+      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-campo-600 shrink-0">
+        <Leaf className="h-3.5 w-3.5 text-white" />
+      </div>
+
+      {nombre && (
+        <>
+          <span className="hidden md:block text-sm font-semibold text-foreground truncate max-w-[160px]">
+            {nombre}
+          </span>
+          {crumbs.length > 0 && (
+            <ChevronRight className="hidden md:block h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+          )}
+        </>
+      )}
+
+      {crumbs.map((crumb, i) => (
+        <Fragment key={i}>
+          {i > 0 && (
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+          )}
+          {crumb.href ? (
+            <NavLink
+              to={crumb.href}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 truncate max-w-[100px]"
+            >
+              {crumb.label}
+            </NavLink>
+          ) : (
+            <span className="text-sm font-medium text-foreground truncate max-w-[120px]">
+              {crumb.label}
+            </span>
+          )}
+        </Fragment>
+      ))}
+    </div>
+  )
+}
+
 // ── Layout ─────────────────────────────────────────────────────
 
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { pathname } = useLocation()
-  const { data: me } = useMe()
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -263,17 +338,8 @@ export function AppLayout() {
           <Menu className="h-4 w-4" />
         </button>
 
-        {/* Logo + Establecimiento */}
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-campo-600 shrink-0">
-            <Leaf className="h-3.5 w-3.5 text-white" />
-          </div>
-          {me?.establecimiento?.nombre && (
-            <span className="hidden sm:block text-sm font-semibold text-foreground truncate max-w-[180px]">
-              {me.establecimiento.nombre}
-            </span>
-          )}
-        </div>
+        {/* Breadcrumb */}
+        <HeaderBreadcrumb />
 
         {/* Search — centrado */}
         <div className="flex-1 flex justify-center px-2">
